@@ -22,8 +22,7 @@ $ docker-compose -f Docker/docker-compose.yml build
 
 5. To run the container:
 ```console
-$ cd Docker
-$ docker-compose up -d
+$ docker-compose -f Docker/docker-compose.yml up -d
 ```
 
 If something went wrong, you can check logs by running:
