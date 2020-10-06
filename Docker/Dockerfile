@@ -5,9 +5,8 @@ WORKDIR /usr/src/exome_p
 
 COPY pyproject.toml poetry.lock /usr/src/exome_p/
 
-# Install gcc and C++ dependencies
-RUN apk add build-base libffi-dev libressl-dev
-# musl-dev
+# Install system-level dependencies
+RUN apk add build-base libffi-dev libressl-dev postgresql-dev gcc python3-dev musl-dev
 
 RUN pip install --upgrade pip && \
     pip install poetry==1.*
