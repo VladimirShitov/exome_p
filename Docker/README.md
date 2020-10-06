@@ -27,5 +27,5 @@ $ docker-compose -f Docker/docker-compose.yml up -d
 
 If something went wrong, you can check logs by running:
 ```console
-$ docker-compose logs -f
+$ docker-compose -f Docker/docker-compose.yml logs -f
 ```
