@@ -17,15 +17,15 @@ $ poetry install
 
 4. To build the Docker container, run:
 ```console
-$ docker-compose -f Docker/docker-compose.yml build
+$ docker-compose build
 ```
 
 5. To run the container:
 ```console
-$ docker-compose -f Docker/docker-compose.yml up -d
+$ docker-compose up -d
 ```
 
 If something went wrong, you can check logs by running:
 ```console
-$ docker-compose -f Docker/docker-compose.yml logs -f
+$ docker-compose logs -f
 ```
