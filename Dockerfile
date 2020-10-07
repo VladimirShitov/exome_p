@@ -14,11 +14,10 @@ RUN pip install --upgrade pip && \
 RUN poetry config virtualenvs.create false \
     && poetry install --no-dev --no-interaction --no-ansi
 
-COPY ./exome_p  /usr/src/exome_p/
+COPY ./  /usr/src/exome_p/
+COPY ./entrypoint.sh /usr/src/exome_p/
 
-# set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# TODO: change
-#ENTRYPOINT ["poetry", "run", "gunicorn", "-c", "/data/gunicorn_cfg.py", "chem_mol_props:app"]
+ENTRYPOINT ["/usr/src/exome_p/entrypoint.sh"]
