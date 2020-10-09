@@ -5,9 +5,8 @@ WORKDIR /usr/src/exome_p
 
 COPY pyproject.toml poetry.lock /usr/src/exome_p/
 
-# Install gcc and C++ dependencies
-RUN apk add build-base libffi-dev libressl-dev
-# musl-dev
+# Install system-level dependencies
+RUN apk add build-base libffi-dev libressl-dev postgresql-dev gcc python3-dev musl-dev
 
 RUN pip install --upgrade pip && \
     pip install poetry==1.*
@@ -15,11 +14,10 @@ RUN pip install --upgrade pip && \
 RUN poetry config virtualenvs.create false \
     && poetry install --no-dev --no-interaction --no-ansi
 
-COPY ./exome_p  /usr/src/exome_p/
+COPY ./  /usr/src/exome_p/
+COPY ./entrypoint.sh /usr/src/exome_p/
 
-# set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# TODO: change
-#ENTRYPOINT ["poetry", "run", "gunicorn", "-c", "/data/gunicorn_cfg.py", "chem_mol_props:app"]
+ENTRYPOINT ["/usr/src/exome_p/entrypoint.sh"]
