@@ -16,8 +16,8 @@ services:
       volumes:
         - postgres_data:/var/lib/postgresql/data/
       environment:
-        - POSTGRES_USER=geneticist
-        - POSTGRES_PASSWORD=B1oAk61Ccn9fhiqJ
-        - POSTGRES_DB=exome_p
+        - POSTGRES_USER=${SQL_USER}
+        - POSTGRES_PASSWORD=${SQL_PASSWORD}
+        - POSTGRES_DB=${SQL_DATABASE}
 volumes:
   postgres_data:
