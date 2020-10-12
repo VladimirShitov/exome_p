@@ -2,19 +2,9 @@ import tempfile
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.utils.translation import gettext_lazy as _
 from loguru import logger
 from pysam import VariantFile
-
-
-def _(message):
-    """Function required for translation programs
-
-    Though it looks ugly, it is the best practice to use it.
-    Links:
-    1. https://docs.python.org/3/library/gettext.html
-    2. https://docs.djangoproject.com/en/3.1/ref/forms/validation/
-    """
-    return message
 
 
 def check_vcf_format(file: InMemoryUploadedFile):
