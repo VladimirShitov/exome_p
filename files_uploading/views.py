@@ -19,7 +19,7 @@ def vcf_file_upload(request):
         else:
             logger.warning('Something has wailed')
             logger.debug('Form errors: {}', form.errors)
-            return HttpResponse('Something went wrong...')
+            return render(request, 'upload.html', {'form': form})
 
     else:
         form = VCFFileForm()
