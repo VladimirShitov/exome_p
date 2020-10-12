@@ -3,6 +3,7 @@ from django.shortcuts import render
 from loguru import logger
 
 from .forms import VCFFileForm
+from .models import VCFFile
 
 
 def vcf_file_upload(request):
@@ -25,3 +26,20 @@ def vcf_file_upload(request):
         form = VCFFileForm()
 
     return render(request, 'upload.html', {'form': form})
+
+
+def vcf_files_list(request):
+    files = VCFFile.objects.all()
+    return render(request, 'vcf_list.html', {'files': files})
+
+
+def vcf_file_download(request, file_id: int):
+    file_object: VCFFile = VCFFile.objects.get(pk=file_id)
+    file = file_object.file
+
+    response = HttpResponse(file.read(), content_type="text/plain")
+    response['Content-Disposition'] = f'attachment; filename={file.name}'
+
+    return response
+
+

@@ -16,9 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from files_uploading.views import vcf_file_upload
+from files_uploading.views import vcf_file_upload, vcf_files_list, vcf_file_download
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('file/vcf/', vcf_file_upload, name='upload'),
+    path('file/vcf/list', vcf_files_list, name='vcf_list'),
+    path('file/vcf/<int:file_id>', vcf_file_download, name='vcf_file'),
 ]
