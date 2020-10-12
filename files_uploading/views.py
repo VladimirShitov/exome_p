@@ -6,6 +6,10 @@ from .forms import VCFFileForm
 from .models import VCFFile
 
 
+def index(request):
+    return render(request, 'base.html')
+
+
 def vcf_file_upload(request):
     if request.method == 'POST':
         logger.info('{} received a POST request', vcf_file_upload.__name__)
