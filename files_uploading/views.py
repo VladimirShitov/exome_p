@@ -3,7 +3,7 @@ from django.shortcuts import render
 from loguru import logger
 
 from .forms import VCFFileForm
-from .models import VCFFile
+from .models import VCFFile, Sample
 
 
 def index(request):
@@ -46,4 +46,8 @@ def vcf_file_download(request, file_id: int):
 
     return response
 
+
+def samples_list(request):
+    samples = Sample.objects.all()
+    return render(request, 'samples_list.html', {'samples': samples})
 
