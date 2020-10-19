@@ -66,6 +66,15 @@ class VCFFileForm(ModelForm):
                             logger.info('No new samples detected. Breaking')
                             break
 
+                    chromosome, created = Chromosome.objects.get_or_create(
+                        number=Chromosome.NamesMapper.name_to_number(name=record.chrom)
+                    )
+                    chromosome.save()
+
+                    reference_allele, created = Allele.objects.get_or_create(genotype=record.ref)
+                    if created:
+                        reference_allele.save()
+
                     for sample_name, sample in record.samples.items():
                         alleles_record, created = AllelesRecord.objects.get_or_create(
                             record=AllelesRecord.from_tuple(sample.allele_indices)
