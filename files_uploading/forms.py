@@ -1,5 +1,3 @@
-from typing import List
-
 from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
@@ -79,4 +77,31 @@ class VCFFileForm(ModelForm):
                         alleles_record, created = AllelesRecord.objects.get_or_create(
                             record=AllelesRecord.from_tuple(sample.allele_indices)
                         )
-                        alleles_record.save()
+                        if created:
+                            alleles_record.save()
+
+                    if len(record.alts) > 1:
+                        logger.warning("Multiple alternative alleles!")
+
+                    alt = record.alts[0]
+
+                    alternative_allele, created = Allele.objects.get_or_create(genotype=alt)
+                    if created:
+                        alternative_allele.save()
+
+                    # TODO: create a key with these fields
+                    snp, created = SNP.objects.get_or_create(
+                        chromosome=chromosome,
+                        position=record.pos,
+                        reference_allele=reference_allele,
+                        alternative_allele=alternative_allele,
+                    )
+                    if not snp.name and record.id:
+                        snp.name = record.id
+                        record.save()
+                    if record.id is not None and snp.name != record.id:
+                        logger.warning(
+                            "SNP names' conflict. Old name: {}, new name: {}", snp.name, record.id
+                        )
+                    if created:
+                        snp.save()
