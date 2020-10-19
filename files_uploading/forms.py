@@ -65,3 +65,9 @@ class VCFFileForm(ModelForm):
                         if not samples:
                             logger.info('No new samples detected. Breaking')
                             break
+
+                    for sample_name, sample in record.samples.items():
+                        alleles_record, created = AllelesRecord.objects.get_or_create(
+                            record=AllelesRecord.from_tuple(sample.allele_indices)
+                        )
+                        alleles_record.save()
