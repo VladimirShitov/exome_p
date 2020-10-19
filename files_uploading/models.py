@@ -39,13 +39,19 @@ class Chromosome(models.Model):
 
 
 class SNP(models.Model):
-    name = models.CharField(max_length=255, primary_key=True, blank=True)
+    class Meta:
+        unique_together = (
+            ('chromosome', 'position', 'reference_allele', 'alternative_allele'),
+        )
+    name = models.CharField(max_length=255, blank=True)
     chromosome = models.ForeignKey(to=Chromosome, on_delete=models.CASCADE)
     position = models.IntegerField(blank=False)
     reference_allele = models.ForeignKey(
         to=Allele, on_delete=models.CASCADE, related_name='ref_to_snp'
     )
-    alternative_alleles = models.ManyToManyField(to=Allele, related_name='alt_to_snp')
+    alternative_allele = models.ForeignKey(
+        to=Allele, on_delete=models.CASCADE, related_name='alt_to_snp'
+    )
 
 
 class AllelesRecord(models.Model):
