@@ -52,9 +52,12 @@ class AllelesRecord(models.Model):
 
     @staticmethod
     def from_tuple(alleles):
+        if alleles == (None, None):
+            return 'Undefined'
+
         if alleles == (1, 0):
             return '0/1'
-        return '/'.join(alleles)
+        return '/'.join(map(str, alleles))
 
     record = models.CharField(max_length=15, blank=False, primary_key=True)
 
