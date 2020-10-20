@@ -13,7 +13,7 @@ from .models import (
     Variant,
     SNP,
 )
-from .utils import are_samples_empty, create_snp, parse_samples
+from .utils import are_samples_empty, create_variants_from_record, create_snp, parse_samples
 from .types import SamplesDict
 
 
@@ -59,12 +59,4 @@ class VCFFileForm(ModelForm):
                         ref=reference_allele
                     )
 
-                    for sample_name, sample in record.samples.items():
-                        alleles_record: AllelesRecord = AllelesRecord.from_sample(sample)
-
-                        sample_db_record = samples[sample_name]
-                        variant, created = Variant.objects.get_or_create(
-                            alleles_record=alleles_record,
-                            snp=snp,
-                            sample=sample_db_record,
-                        )
+                    create_variants_from_record(record=record, snp=snp, samples=samples)

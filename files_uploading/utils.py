@@ -2,7 +2,7 @@ from loguru import logger
 from pysam import VariantRecord
 from typing import Optional
 
-from .models import Allele, Chromosome, Sample, SNP, VCFFile
+from .models import Allele, AllelesRecord, Chromosome, Sample, SNP, Variant, VCFFile
 from .types import SamplesDict
 
 
@@ -50,3 +50,11 @@ def create_snp(chromosome: Chromosome, record: VariantRecord, ref: Allele, alt: 
         )
 
     return snp
+
+
+def create_variants_from_record(record: VariantRecord, snp: SNP, samples: SamplesDict):
+    for sample_name, sample in record.samples.items():
+        alleles_record: AllelesRecord = AllelesRecord.from_sample(sample)
+
+        sample_db_record = samples[sample_name]
+        Variant.objects.create(alleles_record=alleles_record, snp=snp, sample=sample_db_record)
