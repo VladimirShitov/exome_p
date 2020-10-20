@@ -49,4 +49,4 @@ def create_snp(chromosome: Chromosome, record: VariantRecord, ref: Allele, alt: 
             "SNP names' conflict. Old name: {}, new name: {}", snp.name, record.id
         )
 
-    return SNP
+    return snp
