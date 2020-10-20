@@ -1,6 +1,7 @@
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from loguru import logger
 from pysam import VariantRecord
 
 from .validators import check_vcf_format
@@ -24,8 +25,17 @@ class Allele(models.Model):
     genotype = models.CharField(max_length=15, blank=False, primary_key=True)
 
     @classmethod
-    def from_record(cls, record: VariantRecord):
+    def ref_from_record(cls, record: VariantRecord):
         allele, created = cls.objects.get_or_create(genotype=record.ref)
+        return allele
+
+    @classmethod
+    def alt_from_record(cls, record: VariantRecord):
+        if len(record.alts) > 1:
+            logger.warning("Multiple alternative alleles!")
+        alt = record.alts[0]
+        allele, created = cls.objects.get_or_create(genotype=alt)
+
         return allele
 
 

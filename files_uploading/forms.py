@@ -49,19 +49,16 @@ class VCFFileForm(ModelForm):
 
                     chromosome: Chromosome = Chromosome.from_record(record)
 
-                    reference_allele: Allele = Allele.from_record(record)
+                    reference_allele: Allele = Allele.ref_from_record(record)
+                    alternative_allele: Allele = Allele.alt_from_record(record)
 
                     for sample_name, sample in record.samples.items():
                         alleles_record, created = AllelesRecord.objects.get_or_create(
                             record=AllelesRecord.from_tuple(sample.allele_indices)
                         )
 
-                    if len(record.alts) > 1:
-                        logger.warning("Multiple alternative alleles!")
 
-                    alt = record.alts[0]
 
-                    alternative_allele, created = Allele.objects.get_or_create(genotype=alt)
 
                     snp, created = SNP.objects.get_or_create(
                         chromosome=chromosome,
