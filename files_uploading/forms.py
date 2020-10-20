@@ -33,7 +33,7 @@ class VCFFileForm(ModelForm):
                 samples = {}
 
                 for i, record in enumerate(vcf.fetch()):
-                    if i % 50 == 1:
+                    if i % 100 == 1:
                         logger.debug("{} records processed", i)
 
                     if first_iteration:
@@ -58,7 +58,6 @@ class VCFFileForm(ModelForm):
                                 )
 
                         first_iteration = False
-                        logger.debug(samples)
 
                         if not samples:
                             logger.info('No new samples detected. Breaking')
@@ -67,18 +66,13 @@ class VCFFileForm(ModelForm):
                     chromosome, created = Chromosome.objects.get_or_create(
                         number=Chromosome.NamesMapper.name_to_number(name=record.chrom)
                     )
-                    chromosome.save()
 
                     reference_allele, created = Allele.objects.get_or_create(genotype=record.ref)
-                    if created:
-                        reference_allele.save()
 
                     for sample_name, sample in record.samples.items():
                         alleles_record, created = AllelesRecord.objects.get_or_create(
                             record=AllelesRecord.from_tuple(sample.allele_indices)
                         )
-                        if created:
-                            alleles_record.save()
 
                     if len(record.alts) > 1:
                         logger.warning("Multiple alternative alleles!")
@@ -86,10 +80,7 @@ class VCFFileForm(ModelForm):
                     alt = record.alts[0]
 
                     alternative_allele, created = Allele.objects.get_or_create(genotype=alt)
-                    if created:
-                        alternative_allele.save()
 
-                    # TODO: create a key with these fields
                     snp, created = SNP.objects.get_or_create(
                         chromosome=chromosome,
                         position=record.pos,
@@ -103,5 +94,10 @@ class VCFFileForm(ModelForm):
                         logger.warning(
                             "SNP names' conflict. Old name: {}, new name: {}", snp.name, record.id
                         )
-                    if created:
-                        snp.save()
+
+                    for sample_name, sample_db_record in samples.items():
+                        variant, created = Variant.objects.get_or_create(
+                            alleles_record=alleles_record,
+                            snp=snp,
+                            sample=sample_db_record,
+                        )
