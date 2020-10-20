@@ -3,6 +3,7 @@ from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 from loguru import logger
 from pysam import VariantFile
+from typing import Optional
 
 from .models import (
     VCFFile,
@@ -10,10 +11,10 @@ from .models import (
     Chromosome,
     AllelesRecord,
     Variant,
-    Sample,
     SNP,
 )
-from .utils import are_samples_empty
+from .utils import are_samples_empty, parse_samples
+from .types import SamplesDict
 
 
 class VCFFileForm(ModelForm):
@@ -41,21 +42,7 @@ class VCFFileForm(ModelForm):
                         if are_samples_empty(record):
                             break
 
-                        for sample_name, sample in record.samples.items():
-                            # We can put samples in a dict so that we don't go to db each time
-                            sample_db_record, is_sample_created = Sample.objects.get_or_create(
-                                cypher=sample_name
-                            )
-                            if is_sample_created:
-                                sample_db_record.vcf_file = vcf_file
-                                sample_db_record.save()
-                                samples[sample_name] = sample_db_record
-                            else:
-                                logger.warning(  # TODO: handle it smarter
-                                    'Sample {} already exists in the database. Ignoring',
-                                    sample_name
-                                )
-
+                        samples: Optional[SamplesDict] = parse_samples(record, vcf_file)
                         first_iteration = False
 
                         if not samples:
