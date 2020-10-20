@@ -6,10 +6,12 @@ from .models import Allele, AllelesRecord, Chromosome, Sample, SNP, Variant, VCF
 from .types import SamplesDict
 
 
-def are_samples_empty(record: VariantRecord):
+def are_samples_empty(record: VariantRecord) -> bool:
     if not record.samples.items():
         logger.warning('No samples detected')
         logger.info('Finishing reading the file')
+        return True
+    return False
 
 
 def parse_samples(record: VariantRecord, vcf_file: VCFFile) -> Optional[SamplesDict]:
