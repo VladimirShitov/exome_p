@@ -5,15 +5,8 @@ from loguru import logger
 from pysam import VariantFile
 from typing import Optional
 
-from .models import (
-    VCFFile,
-    Allele,
-    Chromosome,
-    AllelesRecord,
-    Variant,
-    SNP,
-)
-from .utils import are_samples_empty, create_variants_from_record, create_snp, parse_samples
+from .models import VCFFile
+from .utils import are_samples_empty, parse_samples, save_record_to_db
 from .types import SamplesDict
 
 
@@ -26,13 +19,11 @@ class VCFFileForm(ModelForm):
     def save(self, commit=True):
         with transaction.atomic():
             vcf_file: VCFFile = super().save(commit=commit)
-
             logger.info('Trying to read VCF file with pysam')
             vcf: VariantFile = VariantFile(vcf_file.file.path)
 
             with transaction.atomic():
                 first_iteration = True
-                samples = {}
 
                 for i, record in enumerate(vcf.fetch()):
                     if i % 100 == 1:
@@ -47,16 +38,4 @@ class VCFFileForm(ModelForm):
                             break
                         first_iteration = False
 
-                    chromosome: Chromosome = Chromosome.from_record(record)
-
-                    reference_allele: Allele = Allele.ref_from_record(record)
-                    alternative_allele: Allele = Allele.alt_from_record(record)
-
-                    snp: SNP = create_snp(
-                        chromosome=chromosome,
-                        record=record,
-                        alt=alternative_allele,
-                        ref=reference_allele
-                    )
-
-                    create_variants_from_record(record=record, snp=snp, samples=samples)
+                    save_record_to_db(record=record, samples=samples)

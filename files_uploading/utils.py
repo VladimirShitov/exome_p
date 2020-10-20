@@ -60,3 +60,16 @@ def create_variants_from_record(record: VariantRecord, snp: SNP, samples: Sample
 
         sample_db_record = samples[sample_name]
         Variant.objects.create(alleles_record=alleles_record, snp=snp, sample=sample_db_record)
+
+
+def save_record_to_db(record: VariantRecord, samples:SamplesDict):
+    chromosome: Chromosome = Chromosome.from_record(record)
+    reference_allele: Allele = Allele.ref_from_record(record)
+    alternative_allele: Allele = Allele.alt_from_record(record)
+    snp: SNP = create_snp(
+        chromosome=chromosome,
+        record=record,
+        alt=alternative_allele,
+        ref=reference_allele
+    )
+    create_variants_from_record(record=record, snp=snp, samples=samples)
