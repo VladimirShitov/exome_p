@@ -49,7 +49,7 @@ class VCFFileForm(ModelForm):
 
                     chromosome: Chromosome = Chromosome.from_record(record)
 
-                    reference_allele = Allele.objects.get_or_create(genotype=record.ref)
+                    reference_allele: Allele = Allele.from_record(record)
 
                     for sample_name, sample in record.samples.items():
                         alleles_record, created = AllelesRecord.objects.get_or_create(

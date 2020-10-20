@@ -23,6 +23,11 @@ class VCFFile(models.Model):
 class Allele(models.Model):
     genotype = models.CharField(max_length=15, blank=False, primary_key=True)
 
+    @classmethod
+    def from_record(cls, record: VariantRecord):
+        allele, created = cls.objects.get_or_create(genotype=record.ref)
+        return allele
+
 
 class Chromosome(models.Model):
 
