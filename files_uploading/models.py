@@ -106,6 +106,5 @@ class Variant(models.Model):
     alleles_record = models.ForeignKey(
         to=AllelesRecord, on_delete=models.SET_NULL, null=True, blank=True
     )
-    alleles = models.ManyToManyField(to=Allele)
     sample = models.ForeignKey(to=Sample, on_delete=models.CASCADE)
     snp = models.ForeignKey(to=SNP, on_delete=models.SET_NULL, null=True, blank=True)
