@@ -53,28 +53,22 @@ class VCFFileForm(ModelForm):
                     alternative_allele: Allele = Allele.alt_from_record(record)
 
                     for sample_name, sample in record.samples.items():
-                        alleles_record, created = AllelesRecord.objects.get_or_create(
-                            record=AllelesRecord.from_tuple(sample.allele_indices)
+                        alleles_record: AllelesRecord = AllelesRecord.from_sample(sample)
+
+                        snp, created = SNP.objects.get_or_create(
+                            chromosome=chromosome,
+                            position=record.pos,
+                            reference_allele=reference_allele,
+                            alternative_allele=alternative_allele,
                         )
-
-
-
-
-                    snp, created = SNP.objects.get_or_create(
-                        chromosome=chromosome,
-                        position=record.pos,
-                        reference_allele=reference_allele,
-                        alternative_allele=alternative_allele,
-                    )
-                    if not snp.name and record.id:
-                        snp.name = record.id
-                        record.save()
-                    if record.id is not None and snp.name != record.id:
-                        logger.warning(
-                            "SNP names' conflict. Old name: {}, new name: {}", snp.name, record.id
-                        )
-
-                    for sample_name, sample_db_record in samples.items():
+                        if not snp.name and record.id:
+                            snp.name = record.id
+                            record.save()
+                        if record.id is not None and snp.name != record.id:
+                            logger.warning(
+                                "SNP names' conflict. Old name: {}, new name: {}", snp.name, record.id
+                            )
+                        sample_db_record = samples[sample_name]
                         variant, created = Variant.objects.get_or_create(
                             alleles_record=alleles_record,
                             snp=snp,

@@ -2,7 +2,7 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from loguru import logger
-from pysam import VariantRecord
+from pysam.libcbcf import VariantRecord, VariantRecordSample
 
 from .validators import check_vcf_format
 
@@ -78,6 +78,7 @@ class SNP(models.Model):
 
 
 class AllelesRecord(models.Model):
+    record = models.CharField(max_length=15, blank=False, primary_key=True)
 
     @staticmethod
     def from_tuple(alleles):
@@ -88,7 +89,12 @@ class AllelesRecord(models.Model):
             return '0/1'
         return '/'.join(map(str, alleles))
 
-    record = models.CharField(max_length=15, blank=False, primary_key=True)
+    @classmethod
+    def from_sample(cls, sample: VariantRecordSample):
+        alleles_record, created = cls.objects.get_or_create(
+            record=cls.from_tuple(sample.allele_indices)
+        )
+        return alleles_record
 
 
 class Nationality(models.Model):
