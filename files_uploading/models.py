@@ -1,6 +1,7 @@
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from pysam import VariantRecord
 
 from .validators import check_vcf_format
 
@@ -25,6 +26,15 @@ class Allele(models.Model):
 
 class Chromosome(models.Model):
 
+    number = models.SmallIntegerField(primary_key=True)
+
+    @classmethod
+    def from_record(cls, record: VariantRecord):
+        chromosome, created = cls.objects.get_or_create(
+            number=cls.NamesMapper.name_to_number(name=record.chrom)
+        )
+        return chromosome
+
     class NamesMapper:
         names_to_number_map = {f'chr{i}': i for i in range(1, 23)}
         names_to_number_map.update(
@@ -34,8 +44,6 @@ class Chromosome(models.Model):
         @classmethod
         def name_to_number(cls, name):
             return cls.names_to_number_map[name]
-
-    number = models.SmallIntegerField(primary_key=True)
 
 
 class SNP(models.Model):

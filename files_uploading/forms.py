@@ -41,19 +41,15 @@ class VCFFileForm(ModelForm):
                     if first_iteration:
                         if are_samples_empty(record):
                             break
-
                         samples: Optional[SamplesDict] = parse_samples(record, vcf_file)
-                        first_iteration = False
-
                         if not samples:
                             logger.info('No new samples detected. Breaking')
                             break
+                        first_iteration = False
 
-                    chromosome, created = Chromosome.objects.get_or_create(
-                        number=Chromosome.NamesMapper.name_to_number(name=record.chrom)
-                    )
+                    chromosome: Chromosome = Chromosome.from_record(record)
 
-                    reference_allele, created = Allele.objects.get_or_create(genotype=record.ref)
+                    reference_allele = Allele.objects.get_or_create(genotype=record.ref)
 
                     for sample_name, sample in record.samples.items():
                         alleles_record, created = AllelesRecord.objects.get_or_create(
