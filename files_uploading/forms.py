@@ -13,7 +13,7 @@ from .models import (
     Variant,
     SNP,
 )
-from .utils import are_samples_empty, parse_samples
+from .utils import are_samples_empty, create_snp, parse_samples
 from .types import SamplesDict
 
 
@@ -52,22 +52,16 @@ class VCFFileForm(ModelForm):
                     reference_allele: Allele = Allele.ref_from_record(record)
                     alternative_allele: Allele = Allele.alt_from_record(record)
 
+                    snp: SNP = create_snp(
+                        chromosome=chromosome,
+                        record=record,
+                        alt=alternative_allele,
+                        ref=reference_allele
+                    )
+
                     for sample_name, sample in record.samples.items():
                         alleles_record: AllelesRecord = AllelesRecord.from_sample(sample)
 
-                        snp, created = SNP.objects.get_or_create(
-                            chromosome=chromosome,
-                            position=record.pos,
-                            reference_allele=reference_allele,
-                            alternative_allele=alternative_allele,
-                        )
-                        if not snp.name and record.id:
-                            snp.name = record.id
-                            record.save()
-                        if record.id is not None and snp.name != record.id:
-                            logger.warning(
-                                "SNP names' conflict. Old name: {}, new name: {}", snp.name, record.id
-                            )
                         sample_db_record = samples[sample_name]
                         variant, created = Variant.objects.get_or_create(
                             alleles_record=alleles_record,

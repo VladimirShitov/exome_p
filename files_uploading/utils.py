@@ -2,7 +2,7 @@ from loguru import logger
 from pysam import VariantRecord
 from typing import Optional
 
-from .models import Sample, VCFFile
+from .models import Allele, Chromosome, Sample, SNP, VCFFile
 from .types import SamplesDict
 
 
@@ -30,3 +30,23 @@ def parse_samples(record: VariantRecord, vcf_file: VCFFile) -> Optional[SamplesD
             )
 
     return samples
+
+
+def create_snp(chromosome: Chromosome, record: VariantRecord, ref: Allele, alt: Allele) -> SNP:
+    snp, created = SNP.objects.get_or_create(
+        chromosome=chromosome,
+        position=record.pos,
+        reference_allele=ref,
+        alternative_allele=alt,
+    )
+
+    if not snp.name and record.id:
+        snp.name = record.id
+        snp.save()
+
+    if record.id is not None and snp.name != record.id:
+        logger.warning(
+            "SNP names' conflict. Old name: {}, new name: {}", snp.name, record.id
+        )
+
+    return SNP
