@@ -13,6 +13,7 @@ from .models import (
     Sample,
     SNP,
 )
+from .utils import are_samples_empty
 
 
 class VCFFileForm(ModelForm):
@@ -37,9 +38,7 @@ class VCFFileForm(ModelForm):
                         logger.debug("{} records processed", i)
 
                     if first_iteration:
-                        if not record.samples.items():
-                            logger.warning('No samples detected')
-                            logger.info('Finishing reading the file')
+                        if are_samples_empty(record):
                             break
 
                         for sample_name, sample in record.samples.items():
