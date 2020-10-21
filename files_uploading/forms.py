@@ -5,7 +5,7 @@ from loguru import logger
 from pysam import VariantFile
 from typing import Optional
 
-from .models import VCFFile
+from .models import VCFFile, SNP
 from .utils import are_samples_empty, parse_samples, save_record_to_db
 from .types import SamplesDict
 
@@ -39,3 +39,15 @@ class VCFFileForm(ModelForm):
                         first_iteration = False
 
                     save_record_to_db(record=record, samples=samples)
+
+
+class SNPSearchForm(ModelForm):
+    class Meta:
+        model = SNP
+        fields = ["chromosome", "position", "reference_allele", "alternative_allele"]
+        labels = {
+            "chromosome": _("Chromosome"),
+            "position": _("Position"),
+            "reference_allele": _("Reference allele"),
+            "alternative_allele": _("Alternative allele"),
+        }
