@@ -75,6 +75,9 @@ class Chromosome(models.Model):
         def number_to_name(cls, number):
             return cls.numbers_to_name_map[number]
 
+    def __str__(self):
+        return self.NamesMapper.number_to_name(self.number)
+
 
 class SNP(models.Model):
     class Meta:
