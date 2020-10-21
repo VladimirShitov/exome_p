@@ -1,3 +1,5 @@
+from typing import Dict
+
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -51,14 +53,27 @@ class Chromosome(models.Model):
         return chromosome
 
     class NamesMapper:
-        names_to_number_map = {f'chr{i}': i for i in range(1, 23)}
+        names_to_number_map: Dict[str, int] = {}
+        numbers_to_name_map: Dict[int, str] = {}
+
+        for i in range(1, 23):
+            names_to_number_map[f'chr{i}'] = i
+            numbers_to_name_map[i] = str(i)
+
         names_to_number_map.update(
             {'X': 23, 'chrX': 23, 'Y': 24, 'chrY': 24, 'XY': 25, 'chrXY': 25, 'chrM': 26, 'MT': 26}
+        )
+        numbers_to_name_map.update(
+            {23: 'X', 24: 'Y', 25: 'XY', 26: 'M'}
         )
 
         @classmethod
         def name_to_number(cls, name):
             return cls.names_to_number_map[name]
+
+        @classmethod
+        def number_to_name(cls, number):
+            return cls.numbers_to_name_map[number]
 
 
 class SNP(models.Model):
