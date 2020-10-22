@@ -167,6 +167,9 @@ class Sample(models.Model):
     )
     vcf_file = models.ForeignKey(to=VCFFile, on_delete=models.SET_NULL, null=True, blank=True)
 
+    def __str__(self):
+        return self.cypher
+
 
 class Variant(models.Model):
     alleles_record = models.ForeignKey(
