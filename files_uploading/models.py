@@ -117,17 +117,29 @@ class AllelesRecord(models.Model):
         )
         return alleles_record
 
+    def __str__(self):
+        return self.record
+
 
 class Nationality(models.Model):
     nationality = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return self.nationality
 
 
 class MitochondriaHaplogroup(models.Model):
     haplogroup = models.CharField(max_length=255)
 
+    def __str__(self):
+        return self.haplogroup
+
 
 class YHaplogroup(models.Model):
     haplogroup = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.haplogroup
 
 
 class Sample(models.Model):
