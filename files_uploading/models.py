@@ -18,7 +18,7 @@ class VCFFile(models.Model):
         upload_to='raw_data/vcf/',
         validators=[
             check_vcf_format,
-            FileExtensionValidator(allowed_extensions=['vcf', 'vcf.gz', 'bcf']),
+            FileExtensionValidator(allowed_extensions=['vcf', 'vcf.gz', 'bcf', 'gz']),
         ]
     )
 
