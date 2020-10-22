@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from loguru import logger
 
-from .forms import VCFFileForm
+from .forms import VCFFileForm, SNPSearchForm
 from .models import VCFFile, Sample
 
 
@@ -51,3 +51,18 @@ def samples_list(request):
     samples = Sample.objects.all()
     return render(request, 'samples_list.html', {'samples': samples})
 
+
+def snp_search_form(request, form_class=SNPSearchForm, template_name='snp_search.html'):
+    if request.method == 'POST':
+        logger.info('{} received a POST request', snp_search_form.__name__)
+        form = form_class(request.POST)
+        if form.is_valid():
+            logger.success('Form is valid, returning success')
+            return HttpResponse('Everything worked correctly')
+        else:
+            logger.warning('Form is not valid')
+            return HttpResponse('Form is not valid')
+    else:
+        form = form_class
+
+    return render(request, template_name, {'form': form})
