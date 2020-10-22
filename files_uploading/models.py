@@ -40,6 +40,9 @@ class Allele(models.Model):
 
         return allele
 
+    def __str__(self):
+        return str(self.genotype)
+
 
 class Chromosome(models.Model):
 
