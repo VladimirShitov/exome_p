@@ -177,3 +177,6 @@ class Variant(models.Model):
     )
     sample = models.ForeignKey(to=Sample, on_delete=models.CASCADE)
     snp = models.ForeignKey(to=SNP, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f'Sample: {self.sample}, SNP: {self.snp}, genotype: {self.alleles_record}'
