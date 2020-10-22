@@ -97,6 +97,10 @@ class SNP(models.Model):
         to=Allele, on_delete=models.CASCADE, related_name='alt_to_snp'
     )
 
+    def __str__(self):
+        return f'{self.name} chr{self.chromosome} REF: {self.reference_allele} ' \
+               f'ALT: {self.alternative_allele}'
+
 
 class AllelesRecord(models.Model):
     record = models.CharField(max_length=15, blank=False, primary_key=True)
