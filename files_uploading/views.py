@@ -6,6 +6,7 @@ from typing import List
 from .forms import VCFFileForm, SNPSearchForm
 from .models import VCFFile, Sample
 from .utils import get_samples_from_snp
+from .types import SamplesSimilarityTable
 
 
 def index(request):
@@ -58,7 +59,7 @@ def snp_search_form(  # TODO: validator
         request,
         form_class=SNPSearchForm,
         form_template='snp_search.html',
-        result_template='samples_list.html',
+        result_template='table_viewer.html',
 ):
     if request.method == 'POST':
         logger.info('{} received a POST request', snp_search_form.__name__)
@@ -67,8 +68,8 @@ def snp_search_form(  # TODO: validator
         logger.info(form)
         if form.is_valid():
             logger.success('Form is valid, returning success')
-            samples: List[Sample] = get_samples_from_snp(request.POST)
-            return render(request, result_template, {'samples': samples})
+            samples: SamplesSimilarityTable = get_samples_from_snp(request.POST)
+            return render(request, result_template, {'table': samples})
         else:
             logger.warning('Form is not valid')
             return render(request, form_template, {'form': form})
