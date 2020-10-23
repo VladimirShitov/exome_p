@@ -1,10 +1,12 @@
+from operator import itemgetter
+
 from django.http import QueryDict
 from loguru import logger
 from pysam import VariantRecord
 from typing import List, Optional, Tuple
 
 from .models import Allele, AllelesRecord, Chromosome, Sample, SNP, Variant, VCFFile
-from .types import SamplesDict
+from .types import SamplesDict, SamplesSimilarityTable, VariantSimilarity
 
 
 def are_samples_empty(record: VariantRecord) -> bool:
@@ -80,3 +82,36 @@ def save_record_to_db(record: VariantRecord, samples:SamplesDict):
         ref=reference_allele
     )
     create_variants_from_record(record=record, snp=snp, samples=samples)
+
+
+def get_genotype(allele_1: str, allele_2:str) -> Tuple[Allele]:
+    return Allele.objects.get(genotype=allele_1), Allele.objects.get(genotype=allele_2)
+
+
+def get_samples_from_snp(request_dict: QueryDict) -> SamplesSimilarityTable:
+    genotype: Tuple[Allele] = get_genotype(request_dict['allele_1'], request_dict['allele_2'])
+
+    snps = SNP.objects.filter(
+        chromosome=request_dict['chromosome'],
+        position=request_dict['position'],
+    )
+
+    weighted_samples: List[VariantSimilarity] = []
+
+    for snp in snps:
+        variants = Variant.objects.filter(snp=snp).select_related('sample')
+        for variant in variants:
+            similarity = variant.calculate_similarity(genotype)
+            if similarity > 0:
+                weighted_samples.append(
+                    VariantSimilarity(
+                        sample=variant.sample,
+                        genotype=variant.get_genotype_string(),
+                        similarity=similarity,
+                    )
+                )
+
+    weighted_samples.sort(key=itemgetter(2), reverse=True)
+    samples = SamplesSimilarityTable(content=weighted_samples)
+
+    return samples
