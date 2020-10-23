@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from django.core.validators import FileExtensionValidator
 from django.db import models
@@ -82,26 +82,6 @@ class Chromosome(models.Model):
         return self.NamesMapper.number_to_name(self.number)
 
 
-class SNP(models.Model):
-    class Meta:
-        unique_together = (
-            ('chromosome', 'position', 'reference_allele', 'alternative_allele'),
-        )
-    name = models.CharField(max_length=255, blank=True)
-    chromosome = models.ForeignKey(to=Chromosome, on_delete=models.CASCADE)
-    position = models.IntegerField(blank=False)
-    reference_allele = models.ForeignKey(
-        to=Allele, on_delete=models.CASCADE, related_name='ref_to_snp'
-    )
-    alternative_allele = models.ForeignKey(
-        to=Allele, on_delete=models.CASCADE, related_name='alt_to_snp'
-    )
-
-    def __str__(self):
-        return f'{self.name} chr{self.chromosome} {self.position} ' \
-               f'REF: {self.reference_allele} ALT: {self.alternative_allele}'
-
-
 class AllelesRecord(models.Model):
     record = models.CharField(max_length=15, blank=False, primary_key=True)
 
@@ -169,6 +149,31 @@ class Sample(models.Model):
 
     def __str__(self):
         return self.cypher
+
+
+class SNP(models.Model):
+    class Meta:
+        unique_together = (
+            ('chromosome', 'position', 'reference_allele', 'alternative_allele'),
+        )
+    name = models.CharField(max_length=255, blank=True)
+    chromosome = models.ForeignKey(to=Chromosome, on_delete=models.CASCADE)
+    position = models.IntegerField(blank=False)
+    reference_allele = models.ForeignKey(
+        to=Allele, on_delete=models.CASCADE, related_name='ref_to_snp'
+    )
+    alternative_allele = models.ForeignKey(
+        to=Allele, on_delete=models.CASCADE, related_name='alt_to_snp'
+    )
+
+    def __str__(self):
+        return f'{self.name} chr{self.chromosome} {self.position} ' \
+               f'REF: {self.reference_allele} ALT: {self.alternative_allele}'
+
+    def get_samples(self) -> List[Sample]:
+        variants_with_snp = Variant.objects.filter(snp=self).select_related('sample')
+        samples = [v.sample for v in variants_with_snp]
+        return samples
 
 
 class Variant(models.Model):
