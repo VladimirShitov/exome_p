@@ -27,6 +27,11 @@ class Allele(models.Model):
     genotype = models.CharField(max_length=15, blank=False, primary_key=True)
 
     @classmethod
+    def from_str(cls, genotype: str):
+        allele, created = cls.objects.get_or_create(genotype=genotype)
+        return allele
+
+    @classmethod
     def ref_from_record(cls, record: VariantRecord):
         allele, created = cls.objects.get_or_create(genotype=record.ref)
         return allele
@@ -185,4 +190,6 @@ class Variant(models.Model):
     alleles = models.ManyToManyField(to=Allele)
 
     def __str__(self):
-        return f'Sample: {self.sample}, SNP: {self.snp}, genotype: {self.alleles_record}'
+        genotype_record = ', '.join(str(allele) for allele in self.alleles.all())
+        return f'Sample: {self.sample}, SNP: {self.snp}, genotype: {self.alleles_record} (' \
+               f'{genotype_record})'

@@ -1,6 +1,7 @@
+from django.http import QueryDict
 from loguru import logger
 from pysam import VariantRecord
-from typing import Optional
+from typing import List, Optional, Tuple
 
 from .models import Allele, AllelesRecord, Chromosome, Sample, SNP, Variant, VCFFile
 from .types import SamplesDict
@@ -59,7 +60,13 @@ def create_variants_from_record(record: VariantRecord, snp: SNP, samples: Sample
         alleles_record: AllelesRecord = AllelesRecord.from_sample(sample)
 
         sample_db_record = samples[sample_name]
-        Variant.objects.create(alleles_record=alleles_record, snp=snp, sample=sample_db_record)
+        variant = Variant.objects.create(
+            alleles_record=alleles_record, snp=snp, sample=sample_db_record
+        )
+
+        for allele in sample.alleles:
+            if allele is not None:
+                variant.alleles.add(Allele.from_str(allele))
 
 
 def save_record_to_db(record: VariantRecord, samples:SamplesDict):
