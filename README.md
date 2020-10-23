@@ -50,3 +50,8 @@ The run:
 ```console
 $ docker-compose exec db psql --username=${SQL_USER} --dbname=${SQL_DATABASE}
 ```
+
+## Running tests
+```console
+$ docker-compose exec web poetry run python manage.py test
+```
