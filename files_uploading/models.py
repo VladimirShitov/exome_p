@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from django.core.validators import FileExtensionValidator
 from django.db import models
@@ -182,6 +182,8 @@ class SNP(models.Model):
 
 
 class Variant(models.Model):
+    from .metrics import identity_percentage
+
     alleles_record = models.ForeignKey(
         to=AllelesRecord, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -193,3 +195,16 @@ class Variant(models.Model):
         genotype_record = ', '.join(str(allele) for allele in self.alleles.all())
         return f'Sample: {self.sample}, SNP: {self.snp}, genotype: {self.alleles_record} (' \
                f'{genotype_record})'
+
+    def calculate_similarity(
+            self, alleles: Tuple[Allele], metric=identity_percentage
+    ) -> float:
+        variant_alleles = tuple(self.alleles.all())
+
+        if all(allele is None for allele in variant_alleles):
+            return 0
+
+        return metric(variant_alleles, alleles)
+
+
+
