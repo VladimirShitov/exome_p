@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            {% if not table %}
+                <div class="alert alert-warning"><p>No similar samples found</p></div>
+            {% else %}
+                <table class="table">
+                    <thead>
+                        {% for title in table.header %}
+                            <th scope="col">{{ title }}</th>
+                        {% endfor %}
+                    </thead>
+                    <tbody>
+                        {% for row in table.content %}
+                            <tr>
+                            {% for item in row %}
+                                <td>{{ item }}</td>
+                            {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
