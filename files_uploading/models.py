@@ -191,10 +191,13 @@ class Variant(models.Model):
     snp = models.ForeignKey(to=SNP, on_delete=models.SET_NULL, null=True, blank=True)
     alleles = models.ManyToManyField(to=Allele)
 
+    def get_genotype_string(self):
+        genotype = ', '.join(str(allele) for allele in self.alleles.all()) or 'Unknown'
+        return genotype
+
     def __str__(self):
-        genotype_record = ', '.join(str(allele) for allele in self.alleles.all())
         return f'Sample: {self.sample}, SNP: {self.snp}, genotype: {self.alleles_record} (' \
-               f'{genotype_record})'
+               f'{self.get_genotype_string()})'
 
     def calculate_similarity(
             self, alleles: Tuple[Allele], metric=identity_percentage
