@@ -46,7 +46,7 @@ $ export SQL_USER=<username>
 $ export SQL_DATABASE=<database name> 
 
 ``` 
-The run:
+Then run:
 ```console
 $ docker-compose exec db psql --username=${SQL_USER} --dbname=${SQL_DATABASE}
 ```
