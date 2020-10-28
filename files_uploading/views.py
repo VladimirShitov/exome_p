@@ -1,7 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from loguru import logger
-from typing import List
 
 from .forms import VCFFileForm, SNPSearchForm
 from .models import VCFFile, Sample
@@ -64,8 +63,6 @@ def snp_search_form(  # TODO: validator
     if request.method == 'POST':
         logger.info('{} received a POST request', snp_search_form.__name__)
         form = form_class(request.POST)
-        logger.info(request.POST)
-        logger.info(form)
         if form.is_valid():
             logger.success('Form is valid, returning success')
             samples: SamplesSimilarityTable = get_samples_from_snp(request.POST)
