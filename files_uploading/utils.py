@@ -71,7 +71,17 @@ def create_variants_from_record(record: VariantRecord, snp: SNP, samples: Sample
                 variant.alleles.add(Allele.from_str(allele))
 
 
+def is_record_incomplete(record: VariantRecord) -> bool:
+    """Check if `record` is missing a required field: e.g chromosome, alleles or position"""
+    return any(
+        field is None or not field for field in (record.chrom, record.alts, record.ref, record.pos)
+    )
+
+
 def save_record_to_db(record: VariantRecord, samples: SamplesDict):
+    if is_record_incomplete(record):
+        return
+
     chromosome: Chromosome = Chromosome.from_record(record)
     reference_allele: Allele = Allele.ref_from_record(record)
     alternative_allele: Allele = Allele.alt_from_record(record)
