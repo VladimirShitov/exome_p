@@ -55,9 +55,24 @@ class Chromosome(models.Model):
 
     @classmethod
     def from_record(cls, record: VariantRecord):
-        chromosome, created = cls.objects.get_or_create(
-            number=cls.NamesMapper.name_to_number(name=record.chrom)
-        )
+        try:
+            chromosome, created = cls.objects.get_or_create(
+                number=cls.NamesMapper.name_to_number(name=record.chrom)
+            )
+
+        except KeyError as e:  # Maybe chromosome is written as a number
+            try:
+                chromosome_number = int(record.chrom)
+            except ValueError as value_error:
+                raise ValueError(
+                    _(f'{record.chrom} is not a valid chromosome name')
+                ) from value_error
+
+            if chromosome_number in cls.NamesMapper.numbers_to_name_map.keys():
+                chromosome, created = cls.objects.get_or_create(number=chromosome_number)
+            else:
+                raise ValueError(_(f'{record.chrom} is not a valid chromosome name')) from e
+
         return chromosome
 
     class NamesMapper:
