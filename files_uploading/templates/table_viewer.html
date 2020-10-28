@@ -1,8 +1,21 @@
 {% extends 'base.html' %}
 
+
+<-- TODO: decompose? -->
+
 {% block content %}
     <div class="row">
         <div class="col-12">
+            <ul>
+                {% for field, value in description.items %}
+                    <li><b>{{ field }}</b>: {{ value }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+        <div class="row">
+            <div class="col-12">
             {% if not table %}
                 <div class="alert alert-warning"><p>No similar samples found</p></div>
             {% else %}
