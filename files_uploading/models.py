@@ -192,7 +192,12 @@ class Variant(models.Model):
     alleles = models.ManyToManyField(to=Allele)
 
     def get_genotype_string(self):
-        genotype = ', '.join(str(allele) for allele in self.alleles.all()) or 'Unknown'
+        alleles = self.alleles.all()
+
+        if len(alleles) == 1:
+            genotype = f'{alleles[0]}, {alleles[0]}'
+        else:
+            genotype = ', '.join(str(allele) for allele in alleles) or 'unknown'
         return genotype
 
     def __str__(self):
