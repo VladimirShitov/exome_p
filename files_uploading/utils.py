@@ -6,7 +6,7 @@ from pysam import VariantRecord
 from typing import List, Optional, Tuple
 
 from .models import Allele, AllelesRecord, Chromosome, Sample, SNP, Variant, VCFFile
-from .types import SamplesDict, SamplesSimilarityTable, VariantSimilarity
+from .types import SamplesDict, SamplesSimilarityTable, VariantSimilarity, VariantDict
 
 
 def are_samples_empty(record: VariantRecord) -> bool:
@@ -115,3 +115,14 @@ def get_samples_from_snp(request_dict: QueryDict) -> SamplesSimilarityTable:
     samples = SamplesSimilarityTable(content=weighted_samples)
 
     return samples
+
+
+def get_snp_from_snp_search_form(request_dict: QueryDict) -> VariantDict:
+    snp_dict = {
+        'chromosome': request_dict['chromosome'],
+        'position': request_dict['position'],
+        'allele_1': request_dict['allele_1'],
+        'allele_2': request_dict['allele_2'],
+    }
+
+    return snp_dict
