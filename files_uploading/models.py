@@ -6,14 +6,14 @@ from django.utils.translation import gettext_lazy as _
 from loguru import logger
 from pysam.libcbcf import VariantRecord, VariantRecordSample
 
-from .validators import check_vcf_format
-
 
 def get_deleted_sample():
     return Sample.objects.get_or_create(cypher='deleted')
 
 
 class VCFFile(models.Model):
+    from .validators import check_vcf_format
+
     file = models.FileField(
         upload_to='raw_data/vcf/',
         validators=[
