@@ -6,7 +6,7 @@ from loguru import logger
 from pysam import VariantFile
 from typing import Optional
 
-from .models import Allele, Chromosome, VCFFile, SNP
+from .models import Allele, Chromosome, VCFFile
 from .utils import are_samples_empty, parse_samples, save_record_to_db
 from .types import SamplesDict
 
