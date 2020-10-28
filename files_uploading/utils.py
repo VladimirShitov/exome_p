@@ -71,7 +71,7 @@ def create_variants_from_record(record: VariantRecord, snp: SNP, samples: Sample
                 variant.alleles.add(Allele.from_str(allele))
 
 
-def save_record_to_db(record: VariantRecord, samples:SamplesDict):
+def save_record_to_db(record: VariantRecord, samples: SamplesDict):
     chromosome: Chromosome = Chromosome.from_record(record)
     reference_allele: Allele = Allele.ref_from_record(record)
     alternative_allele: Allele = Allele.alt_from_record(record)
