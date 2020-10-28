@@ -1,5 +1,6 @@
 from collections import namedtuple
-from typing import Dict, cast, List, Tuple
+from enum import Enum
+from typing import cast, Dict, List, TypedDict, Tuple
 
 from django.utils.translation import gettext_lazy as _
 
@@ -9,6 +10,20 @@ from .models import Sample
 SamplesDict = Dict[str, Sample]
 
 VariantSimilarity = namedtuple('VariantSimilarity', ['sample', 'genotype', 'similarity'])
+
+
+class Nucleotide(Enum):
+    A = 'A'
+    T = 'T'
+    G = 'G'
+    C = 'C'
+
+
+class VariantDict(TypedDict):
+    chromosome: str
+    position: int
+    allele_1: Nucleotide
+    allele_2: Nucleotide
 
 
 class Table:
