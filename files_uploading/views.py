@@ -54,7 +54,7 @@ def samples_list(request):
     return render(request, 'samples_list.html', {'samples': samples})
 
 
-def snp_search_form(  # TODO: validator
+def snp_search_form(
         request,
         form_class=SNPSearchForm,
         form_template='snp_search.html',
