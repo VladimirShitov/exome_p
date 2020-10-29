@@ -24,6 +24,7 @@ environ.Env.read_env()  # reading .env file
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+logger.debug('App base dir is {}', BASE_DIR)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -38,10 +39,8 @@ logger.remove()
 if DEBUG:
     logger.add(sys.stdout)
 
-ALLOWED_HOSTS = env.str("DJANGO_ALLOWED_HOSTS").split(" ")
-
-
-logger.debug('App base dir is {}', BASE_DIR)
+ALLOWED_HOSTS = env.str("DJANGO_ALLOWED_HOSTS").split(' ')
+logger.debug('App allowed hosts are {}', ', '.join(ALLOWED_HOSTS))
 
 # Application definition
 

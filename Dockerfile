@@ -6,7 +6,16 @@ WORKDIR /usr/src/exome_p
 COPY pyproject.toml poetry.lock /usr/src/exome_p/
 
 # Install system-level dependencies
-RUN apk add build-base libffi-dev libressl-dev postgresql-dev gcc python3-dev musl-dev
+RUN apk add build-base libffi-dev libressl-dev postgresql-dev gcc python3-dev musl-dev \
+            zlib-dev bzip2-dev xz-dev
+
+# Install htslib
+RUN cd /usr/bin && \
+    wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 && \
+    tar -vxjf htslib-1.9.tar.bz2 && \
+    cd htslib-1.9 && \
+    make
+
 
 RUN pip install --upgrade pip && \
     pip install poetry==1.*

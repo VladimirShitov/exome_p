@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            {% if not files %}
+                <p class="alert alert-warning">No files found!</p>
+            {% else %}
+                {% load static %}
+                <ul>
+                    {% for file in files %}
+                    <li><a href="{% url 'vcf_file' file.id %}">{{ file.file.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

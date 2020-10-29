@@ -76,6 +76,14 @@ version = "2.8.6"
 
 [[package]]
 category = "main"
+description = "pysam"
+name = "pysam"
+optional = false
+python-versions = "*"
+version = "0.16.0.1"
+
+[[package]]
+category = "main"
 description = "World timezone definitions, modern and historical"
 name = "pytz"
 optional = false
@@ -103,7 +111,7 @@ version = "1.0.3"
 dev = ["pytest (>=4.6.2)", "black (>=19.3b0)"]
 
 [metadata]
-content-hash = "514348768cf5960238ba620357621ba0b855b7f68ded167c2a900aee461f6fbc"
+content-hash = "1b6a8760f154219281c8e5f7ce060807491e44bc9771c9ddcc613a81fa372869"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -175,6 +183,15 @@ psycopg2-binary = [
     {file = "psycopg2_binary-2.8.6-cp38-cp38-win_amd64.whl", hash = "sha256:8cd0fb36c7412996859cb4606a35969dd01f4ea34d9812a141cd920c3b18be77"},
     {file = "psycopg2_binary-2.8.6-cp39-cp39-manylinux1_i686.whl", hash = "sha256:42ec1035841b389e8cc3692277a0bd81cdfe0b65d575a2c8862cec7a80e62e52"},
     {file = "psycopg2_binary-2.8.6-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:7312e931b90fe14f925729cde58022f5d034241918a5c4f9797cac62f6b3a9dd"},
+]
+pysam = [
+    {file = "pysam-0.16.0.1-cp27-cp27m-manylinux1_x86_64.whl", hash = "sha256:9e3597a49e4bc72c31199d6231018ad3034e08a8243b9f8086953afb2ab5a3af"},
+    {file = "pysam-0.16.0.1-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:a5a0fc1f0d724d0b7789341add26ba181ac009430021f0998f6083fb62432193"},
+    {file = "pysam-0.16.0.1-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:9da29490c666a963e5a7f6f5114e86c9b36a8a6adc2227f5772bdc38c09d2d37"},
+    {file = "pysam-0.16.0.1-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:107eca9050d8140910b5ea5c5a9e66313e1155eb44cc180e10f48f9cb71e8095"},
+    {file = "pysam-0.16.0.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:f65659deadc4904984de24cb6f3878b6052cf504a2a85a50b80f2ff7939f96db"},
+    {file = "pysam-0.16.0.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:3eb70111a5ed86cc7a048c9b2205087b1184093e6135f02ad7f144b206951452"},
+    {file = "pysam-0.16.0.1.tar.gz", hash = "sha256:d428a9768691d5ea3c28cc52a949c920ae691aa4c110a8b7328dc4d165ef1ad6"},
 ]
 pytz = [
     {file = "pytz-2020.1-py2.py3-none-any.whl", hash = "sha256:a494d53b6d39c3c6e44c3bec237336e14305e4f29bbf800b599253057fbb79ed"},

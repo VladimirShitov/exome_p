@@ -3,7 +3,7 @@
 {% block content %}
     <div class="row">
         <div class="col-12">
-            <form action="{% url "upload" %}" method="post" enctype="multipart/form-data">
+            <form action="{% url "snp_search" %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 {% for field in form %}
                     <div class="field_wrapper">
@@ -16,7 +16,7 @@
                         {{ field.label_tag }} {{ field }}
                     </div>
                 {% endfor %}
-                <button type="submit" class="btn btn-success">Send the file</button>
+                <button type="submit" class="btn btn-success">Search</button>
             </form>
         </div>
     </div>

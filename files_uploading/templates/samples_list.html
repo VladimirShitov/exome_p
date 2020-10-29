@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            {% if not samples %}
+                <p class="alert alert-warning">No samples found!</p>
+            {% else %}
+                {% load static %}
+                <ul>
+                    {% for sample in samples %}
+                    <li><a href="{% url 'vcf_file' sample.vcf_file.id %}">{{ sample.cypher }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

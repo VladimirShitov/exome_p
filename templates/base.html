@@ -13,18 +13,14 @@
   </head>
   <body>
     <div class="header">
-      <h1>TODO: header</h1>
+      {% include 'header.html' %}
     </div>
     <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-12">
-          {% block content %}
-          {% endblock %}
-        </div>
-      </div>
+      {% block content %}
+      {% endblock %}
     </div>
     <footer class="footer">
-        <h1>TODO: footer</h1>
+        <!-- TODO -->
     </footer>
 
   </body>
