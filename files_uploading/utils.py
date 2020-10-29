@@ -1,9 +1,12 @@
+from operator import itemgetter
+
+from django.http import QueryDict
 from loguru import logger
 from pysam import VariantRecord
-from typing import Optional
+from typing import List, Optional, Tuple
 
 from .models import Allele, AllelesRecord, Chromosome, Sample, SNP, Variant, VCFFile
-from .types import SamplesDict
+from .types import SamplesDict, SamplesSimilarityTable, VariantSimilarity, VariantDict
 
 
 def are_samples_empty(record: VariantRecord) -> bool:
@@ -59,10 +62,26 @@ def create_variants_from_record(record: VariantRecord, snp: SNP, samples: Sample
         alleles_record: AllelesRecord = AllelesRecord.from_sample(sample)
 
         sample_db_record = samples[sample_name]
-        Variant.objects.create(alleles_record=alleles_record, snp=snp, sample=sample_db_record)
+        variant = Variant.objects.create(
+            alleles_record=alleles_record, snp=snp, sample=sample_db_record
+        )
+
+        for allele in sample.alleles:
+            if allele is not None:
+                variant.alleles.add(Allele.from_str(allele))
 
 
-def save_record_to_db(record: VariantRecord, samples:SamplesDict):
+def is_record_incomplete(record: VariantRecord) -> bool:
+    """Check if `record` is missing a required field: e.g chromosome, alleles or position"""
+    return any(
+        field is None or not field for field in (record.chrom, record.alts, record.ref, record.pos)
+    )
+
+
+def save_record_to_db(record: VariantRecord, samples: SamplesDict):
+    if is_record_incomplete(record):
+        return
+
     chromosome: Chromosome = Chromosome.from_record(record)
     reference_allele: Allele = Allele.ref_from_record(record)
     alternative_allele: Allele = Allele.alt_from_record(record)
@@ -73,3 +92,47 @@ def save_record_to_db(record: VariantRecord, samples:SamplesDict):
         ref=reference_allele
     )
     create_variants_from_record(record=record, snp=snp, samples=samples)
+
+
+def get_genotype(allele_1: str, allele_2:str) -> Tuple[Allele]:
+    return Allele.objects.get(genotype=allele_1), Allele.objects.get(genotype=allele_2)
+
+
+def get_samples_from_snp(request_dict: QueryDict) -> SamplesSimilarityTable:
+    genotype: Tuple[Allele] = get_genotype(request_dict['allele_1'], request_dict['allele_2'])
+
+    snps = SNP.objects.filter(
+        chromosome=request_dict['chromosome'],
+        position=request_dict['position'],
+    )
+
+    weighted_samples: List[VariantSimilarity] = []
+
+    for snp in snps:
+        variants = Variant.objects.filter(snp=snp).select_related('sample')
+        for variant in variants:
+            similarity = variant.calculate_similarity(genotype)
+            if similarity > 0:
+                weighted_samples.append(
+                    VariantSimilarity(
+                        sample=variant.sample,
+                        genotype=variant.get_genotype_string(),
+                        similarity=similarity,
+                    )
+                )
+
+    weighted_samples.sort(key=itemgetter(2), reverse=True)
+    samples = SamplesSimilarityTable(content=weighted_samples)
+
+    return samples
+
+
+def get_snp_from_snp_search_form(request_dict: QueryDict) -> VariantDict:
+    snp_dict = {
+        'chromosome': request_dict['chromosome'],
+        'position': request_dict['position'],
+        'allele_1': request_dict['allele_1'],
+        'allele_2': request_dict['allele_2'],
+    }
+
+    return snp_dict
