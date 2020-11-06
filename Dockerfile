@@ -22,6 +22,11 @@ RUN git clone https://github.com/e-jorsboe/fastNGSadmix.git && \
     make && \
     cp fastNGSadmix /usr/bin/
 
+RUN wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20201019.zip && \
+    unzip plink_linux_x86_64_20201019.zip && \
+    cp plink /usr/bin/
+
+
 RUN pip install --upgrade pip && \
     pip install poetry==1.*
 
