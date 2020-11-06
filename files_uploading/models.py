@@ -6,12 +6,14 @@ from django.utils.translation import gettext_lazy as _
 from loguru import logger
 from pysam.libcbcf import VariantRecord, VariantRecordSample
 
+from .vcf_processing import VCFFile, VCFRecord
+
 
 def get_deleted_sample():
     return Sample.objects.get_or_create(cypher='deleted')
 
 
-class VCFFile(models.Model):
+class RawVCF(models.Model):
     from .validators import check_vcf_format
 
     file = models.FileField(
@@ -165,10 +167,29 @@ class Sample(models.Model):
     Y_haplogroup = models.ForeignKey(
         to=YHaplogroup, on_delete=models.SET_NULL, null=True, blank=True
     )
-    vcf_file = models.ForeignKey(to=VCFFile, on_delete=models.SET_NULL, null=True, blank=True)
+    vcf_file = models.ForeignKey(to=RawVCF, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.cypher
+
+    def to_vcf(self) -> VCFFile:
+        vcf_file = VCFFile(sample=str(self))
+
+        variants = Variant.objects.filter(sample=self).select_related('snp')
+
+        for variant in variants:
+            vcf_record = VCFRecord(
+                chromosome=str(variant.snp.chromosome),
+                position=variant.snp.position,
+                sample=str(self),
+                sample_indexes=variant.alleles_record,
+                ref=variant.snp.reference_allele,
+                alts=[variant.snp.alternative_allele],
+                id_=variant.snp.name
+            )
+            vcf_file.add_record(vcf_record)
+
+        return vcf_file
 
 
 class SNP(models.Model):
@@ -216,8 +237,8 @@ class Variant(models.Model):
         return genotype
 
     def __str__(self):
-        return f'Sample: {self.sample}, SNP: {self.snp}, genotype: {self.alleles_record} (' \
-               f'{self.get_genotype_string()})'
+        return f'Sample: {self.sample}, SNP: {self.snp}, genotype: {self.alleles_record} ' \
+               f'({self.get_genotype_string()})'
 
     def calculate_similarity(
             self, alleles: Tuple[Allele], metric=identity_percentage
@@ -228,6 +249,3 @@ class Variant(models.Model):
             return 0
 
         return metric(variant_alleles, alleles)
-
-
-
