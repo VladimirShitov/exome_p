@@ -5,7 +5,7 @@ from loguru import logger
 from pysam import VariantRecord
 from typing import List, Optional, Tuple
 
-from .models import Allele, AllelesRecord, Chromosome, Sample, SNP, Variant, VCFFile
+from .models import Allele, AllelesRecord, Chromosome, Sample, SNP, Variant, RawVCF
 from .types import SamplesDict, SamplesSimilarityTable, VariantSimilarity, VariantDict
 
 
@@ -17,7 +17,7 @@ def are_samples_empty(record: VariantRecord) -> bool:
     return False
 
 
-def parse_samples(record: VariantRecord, vcf_file: VCFFile) -> Optional[SamplesDict]:
+def parse_samples(record: VariantRecord, vcf_file: RawVCF) -> Optional[SamplesDict]:
     samples: Optional[SamplesDict] = {}
 
     for sample_name, sample in record.samples.items():

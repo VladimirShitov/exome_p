@@ -6,20 +6,20 @@ from loguru import logger
 from pysam import VariantFile
 from typing import Optional
 
-from .models import Allele, Chromosome, VCFFile
+from .models import Allele, Chromosome, RawVCF
 from .utils import are_samples_empty, parse_samples, save_record_to_db
 from .types import SamplesDict
 
 
 class VCFFileForm(ModelForm):
     class Meta:
-        model = VCFFile
+        model = RawVCF
         fields = ['file']
         labels = {'file': _('File with genetic variants (e.g. VCF file)')}
 
     def save(self, commit=True):
         with transaction.atomic():
-            vcf_file: VCFFile = super().save(commit=commit)
+            vcf_file: RawVCF = super().save(commit=commit)
             logger.info('Trying to read VCF file with pysam')
             vcf: VariantFile = VariantFile(vcf_file.file.path)
 

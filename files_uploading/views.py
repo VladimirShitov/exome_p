@@ -3,7 +3,7 @@ from django.shortcuts import render
 from loguru import logger
 
 from .forms import VCFFileForm, SNPSearchForm
-from .models import VCFFile, Sample
+from .models import RawVCF, Sample
 from .utils import get_samples_from_snp, get_snp_from_snp_search_form
 from .types import VariantDict, SamplesSimilarityTable
 
@@ -35,12 +35,12 @@ def vcf_file_upload(request):
 
 
 def vcf_files_list(request):
-    files = VCFFile.objects.all()
+    files = RawVCF.objects.all()
     return render(request, 'vcf_list.html', {'files': files})
 
 
 def vcf_file_download(request, file_id: int):
-    file_object: VCFFile = VCFFile.objects.get(pk=file_id)
+    file_object: RawVCF = RawVCF.objects.get(pk=file_id)
     file = file_object.file
 
     response = HttpResponse(file.read(), content_type="text/plain")
