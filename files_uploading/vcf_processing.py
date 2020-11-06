@@ -44,7 +44,7 @@ class VCFFile:
     columns = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT']
 
     def __init__(self, sample):
-        self.sample = sample
+        self.sample = sample  # TODO: add support for multiple samples if needed
 
         self.columns.append(sample)
         self.records = []
