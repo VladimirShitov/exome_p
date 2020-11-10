@@ -159,7 +159,13 @@ class Sample(models.Model):
     cypher = models.CharField(max_length=255, primary_key=True)
     gender = models.CharField(max_length=15, choices=Gender.choices, default=Gender.UNDEFINED)
     nationality = models.ForeignKey(
-        to=Nationality, on_delete=models.SET_NULL, null=True, blank=True
+        to=Nationality, on_delete=models.SET_NULL, null=True, blank=True, related_name='sample'
+    )
+    predicted_nationality = models.ForeignKey(
+        to=Nationality,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='predicted_nationality_sample'
     )
     mitochondrial_haplogroup = models.ForeignKey(
         to=MitochondriaHaplogroup, on_delete=models.SET_NULL, null=True
