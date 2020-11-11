@@ -67,8 +67,7 @@ def create_variants_from_record(record: VariantRecord, snp: SNP, samples: Sample
         )
 
         for allele in sample.alleles:
-            if allele is not None:
-                variant.alleles.add(Allele.from_str(allele))
+            variant.alleles.add(Allele.from_str(allele or '.'))
 
 
 def is_record_incomplete(record: VariantRecord) -> bool:
@@ -94,7 +93,7 @@ def save_record_to_db(record: VariantRecord, samples: SamplesDict):
     create_variants_from_record(record=record, snp=snp, samples=samples)
 
 
-def get_genotype(allele_1: str, allele_2:str) -> Tuple[Allele]:
+def get_genotype(allele_1: str, allele_2: str) -> Tuple[Allele]:
     return Allele.objects.get(genotype=allele_1), Allele.objects.get(genotype=allele_2)
 
 
