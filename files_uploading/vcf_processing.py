@@ -36,17 +36,15 @@ class VCFRecord:
 
 
 class VCFFile:
-    header = [
+    header = (
         '##fileformat=VCFv4.3',
         '##source=exome_p',
         '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">'
-    ]
-    columns = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT']
+    )
+    columns = ('#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT')
 
     def __init__(self, sample):
-        self.sample = sample  # TODO: add support for multiple samples if needed
-
-        self.columns.append(sample)
+        self.columns_string = '\t'.join(self.columns) + '\t' + sample
         self.records = []
 
     def add_record(self, record: VCFRecord):
@@ -55,6 +53,6 @@ class VCFFile:
     def save(self, file_path: Path):
         with open(file_path, 'w') as f:
             f.write('\n'.join(self.header) + '\n')
-            f.write('\t'.join(self.columns) + '\n')
+            f.write(self.columns_string + '\n')
             for record in self.records:
                 f.write(str(record) + '\n')
