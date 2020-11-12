@@ -7,7 +7,7 @@ from loguru import logger
 from pysam.libcbcf import VariantRecord, VariantRecordSample
 
 from .vcf_processing import VCFFile, VCFRecord
-
+from nationality_prediction.predictors import FastNGSAdmixPredictor
 
 def get_deleted_sample():
     return Sample.objects.get_or_create(cypher='deleted')
@@ -196,6 +196,10 @@ class Sample(models.Model):
             vcf_file.add_record(vcf_record)
 
         return vcf_file
+
+    def predict_nationality(self):
+        predictor = FastNGSAdmixPredictor(self.to_vcf())
+        return predictor.predict()
 
 
 class SNP(models.Model):
