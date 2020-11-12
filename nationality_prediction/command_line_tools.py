@@ -46,10 +46,10 @@ def run_fastngsadmix(dir_path: Path, number_of_individuals_file: str, ref_panel:
     fast_ngs_admix_result = subprocess.run(
         [
             "fastNGSadmix",
-            "-plink", dir_path / PLINK_OUTPUT_PREFIX,
+            "-plink", str(dir_path / PLINK_OUTPUT_PREFIX),
             "-Nname", number_of_individuals_file,
             "-fname", ref_panel,
-            "-out", dir_path / FAST_NGS_ADMIX_OUTPUT_PREFIX,
+            "-out", str(dir_path / FAST_NGS_ADMIX_OUTPUT_PREFIX),
             "-whichPops", "all",
         ],
         capture_output=True
