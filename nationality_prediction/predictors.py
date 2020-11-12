@@ -60,8 +60,8 @@ class FastNGSAdmixPredictor:
             logger.debug("Predicted nationalities:\n{}", predicted_nationalities)
 
         file_content = predicted_nationalities.strip().split('\n')
-        nationalities = file_content[0]
-        scores = file_content[1]
+        nationalities = file_content[0].strip().split()
+        scores = file_content[1].strip().split()
 
         if len(nationalities) != len(scores):
             logger.warning("Nationalities and scores have different length")
