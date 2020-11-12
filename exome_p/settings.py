@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'files_uploading',
+    'nationality_prediction',
 ]
 
 MIDDLEWARE = [
