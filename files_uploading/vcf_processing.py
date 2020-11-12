@@ -14,7 +14,7 @@ class VCFRecord:
             id_=".",
             quality=".",
             filter_=".",
-            format_='.',
+            format_='GT',
             info=".",
     ):
         self.chromosome = chromosome
