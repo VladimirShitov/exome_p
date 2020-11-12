@@ -110,7 +110,7 @@ class AllelesRecord(models.Model):
     @staticmethod
     def from_tuple(alleles):
         if alleles == (None, None):
-            return 'Undefined'
+            return './.'
 
         if alleles == (1, 0):
             return '0/1'
