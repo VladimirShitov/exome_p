@@ -181,7 +181,7 @@ class Sample(models.Model):
     def to_vcf(self) -> VCFFile:
         vcf_file = VCFFile(sample=str(self))
 
-        variants = Variant.objects.filter(sample=self).select_related('snp', 'allele')
+        variants = Variant.objects.filter(sample=self).select_related('snp')
 
         for variant in variants:
             vcf_record = VCFRecord(
@@ -189,8 +189,8 @@ class Sample(models.Model):
                 position=variant.snp.position,
                 sample=str(self),
                 sample_indexes=variant.alleles_record,
-                ref=variant.snp.reference_allele,
-                alts=[str(allele) for allele in variant.alleles.all()],
+                ref=str(variant.snp.reference_allele),
+                alts=[str(variant.snp.alternative_allele)],
                 id_=variant.snp.name
             )
             vcf_file.add_record(vcf_record)
