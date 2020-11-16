@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <h1>Predicted nationalities</h1>
+            {% if not predicted_nationalities %}
+                <div class="alert alert-warning"><p>Couldn't predict nationality</p></div>
+            {% else %}
+                <table class="table">
+                    <thead>
+                        <th scope="col">Nationality</th>
+                        <th scope="col">Probability</th>
+                    </thead>
+                    <tbody>
+                        {% for nationality, score in predicted_nationalities.items %}
+                            <tr>
+                                <td>{{ nationality }}</td>
+                                <td>{{ score }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
