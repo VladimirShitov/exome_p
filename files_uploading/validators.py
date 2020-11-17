@@ -8,17 +8,19 @@ from pysam import VariantFile
 
 
 def check_vcf_format(file: InMemoryUploadedFile):
-    with tempfile.NamedTemporaryFile(suffix='.vcf') as f:
+    with tempfile.NamedTemporaryFile(suffix=".vcf") as f:
         f.write(file.read())
         f.seek(0)
 
-        logger.info('Saved VCF to the temporary file {}', f.name)
-        logger.debug('Is file readable: {}', f.readable())
+        logger.info("Saved VCF to the temporary file {}", f.name)
+        logger.debug("Is file readable: {}", f.readable())
 
         try:
             VariantFile(f.name)
         except (ValueError, OSError) as e:
             raise ValidationError(
-                _('Reading of the file has failed. Probably, the file has a wrong format'),
-                code='format.invalid',
+                _(
+                    "Reading of the file has failed. Probably, the file has a wrong format"
+                ),
+                code="format.invalid",
             ) from e

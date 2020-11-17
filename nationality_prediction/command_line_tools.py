@@ -1,13 +1,11 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 from loguru import logger
 
-from nationality_prediction.constants import (
-    FAST_NGS_ADMIX_OUTPUT_PREFIX,
-    VCF_FILENAME,
-    PLINK_OUTPUT_PREFIX
-)
+from nationality_prediction.constants import (FAST_NGS_ADMIX_OUTPUT_PREFIX,
+                                              PLINK_OUTPUT_PREFIX,
+                                              VCF_FILENAME)
 
 
 def run_plink(dir_path: Path):
@@ -22,12 +20,14 @@ def run_plink(dir_path: Path):
     result = subprocess.run(
         [
             "plink",
-            "--vcf", dir_path / VCF_FILENAME,
+            "--vcf",
+            dir_path / VCF_FILENAME,
             "--make-bed",
             "--recode",
-            "--out", dir_path / PLINK_OUTPUT_PREFIX
+            "--out",
+            dir_path / PLINK_OUTPUT_PREFIX,
         ],
-        capture_output=True
+        capture_output=True,
     )
     logger.debug("STDOUT: {}", result.stdout)
     logger.debug("STDERR: {}", result.stderr)
@@ -46,13 +46,18 @@ def run_fastngsadmix(dir_path: Path, number_of_individuals_file: str, ref_panel:
     fast_ngs_admix_result = subprocess.run(
         [
             "fastNGSadmix",
-            "-plink", str(dir_path / PLINK_OUTPUT_PREFIX),
-            "-Nname", number_of_individuals_file,
-            "-fname", ref_panel,
-            "-out", str(dir_path / FAST_NGS_ADMIX_OUTPUT_PREFIX),
-            "-whichPops", "all",
+            "-plink",
+            str(dir_path / PLINK_OUTPUT_PREFIX),
+            "-Nname",
+            number_of_individuals_file,
+            "-fname",
+            ref_panel,
+            "-out",
+            str(dir_path / FAST_NGS_ADMIX_OUTPUT_PREFIX),
+            "-whichPops",
+            "all",
         ],
-        capture_output=True
+        capture_output=True,
     )
     logger.debug("STDOUT: {}", fast_ngs_admix_result.stdout)
     logger.debug("STDERR: {}", fast_ngs_admix_result.stderr)

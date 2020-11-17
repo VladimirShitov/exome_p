@@ -1,5 +1,5 @@
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from typing import Dict, Union
 
 from django.contrib.staticfiles import finders
@@ -8,8 +8,10 @@ from django.utils.translation import gettext_lazy as _
 from loguru import logger
 
 from files_uploading.vcf_processing import VCFFile
-from nationality_prediction.command_line_tools import run_fastngsadmix, run_plink
-from nationality_prediction.constants import FAST_NGS_ADMIX_OUTPUT, VCF_FILENAME
+from nationality_prediction.command_line_tools import (run_fastngsadmix,
+                                                       run_plink)
+from nationality_prediction.constants import (FAST_NGS_ADMIX_OUTPUT,
+                                              VCF_FILENAME)
 
 
 class FastNGSAdmixPredictor:
@@ -45,7 +47,9 @@ class FastNGSAdmixPredictor:
                     predicted_nationalities = self.run_command_line_tools(tmp_dir_path)
 
             else:
-                raise ValueError(_(f"Type {type(self.vcf)} is not supported for VCF files"))
+                raise ValueError(
+                    _(f"Type {type(self.vcf)} is not supported for VCF files")
+                )
 
             return predicted_nationalities
 
@@ -65,7 +69,7 @@ class FastNGSAdmixPredictor:
         run_fastngsadmix(
             directory,
             number_of_individuals_file=self.number_of_individuals_file,
-            ref_panel=self.reference_panel_file
+            ref_panel=self.reference_panel_file,
         )
 
         predicted_nationalities: Dict[str, float] = self.process_fastngsadmix_output(
@@ -87,7 +91,7 @@ class FastNGSAdmixPredictor:
             predicted_nationalities = f.read()
             logger.debug("Predicted nationalities:\n{}", predicted_nationalities)
 
-        file_content = predicted_nationalities.strip().split('\n')
+        file_content = predicted_nationalities.strip().split("\n")
         nationalities = file_content[0].strip().split()
         scores = file_content[1].strip().split()
 

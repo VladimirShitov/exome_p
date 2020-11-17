@@ -6,22 +6,24 @@ from django.utils.translation import gettext_lazy as _
 from loguru import logger
 from pysam.libcbcf import VariantRecord, VariantRecordSample
 
-from .vcf_processing import VCFFile, VCFRecord
 from nationality_prediction.predictors import FastNGSAdmixPredictor
 
+from .vcf_processing import VCFFile, VCFRecord
+
+
 def get_deleted_sample():
-    return Sample.objects.get_or_create(cypher='deleted')
+    return Sample.objects.get_or_create(cypher="deleted")
 
 
 class RawVCF(models.Model):
     from .validators import check_vcf_format
 
     file = models.FileField(
-        upload_to='raw_data/vcf/',
+        upload_to="raw_data/vcf/",
         validators=[
             check_vcf_format,
-            FileExtensionValidator(allowed_extensions=['vcf', 'vcf.gz', 'bcf', 'gz']),
-        ]
+            FileExtensionValidator(allowed_extensions=["vcf", "vcf.gz", "bcf", "gz"]),
+        ],
     )
 
 
@@ -67,13 +69,17 @@ class Chromosome(models.Model):
                 chromosome_number = int(record.chrom)
             except ValueError as value_error:
                 raise ValueError(
-                    _(f'{record.chrom} is not a valid chromosome name')
+                    _(f"{record.chrom} is not a valid chromosome name")
                 ) from value_error
 
             if chromosome_number in cls.NamesMapper.numbers_to_name_map.keys():
-                chromosome, created = cls.objects.get_or_create(number=chromosome_number)
+                chromosome, created = cls.objects.get_or_create(
+                    number=chromosome_number
+                )
             else:
-                raise ValueError(_(f'{record.chrom} is not a valid chromosome name')) from e
+                raise ValueError(
+                    _(f"{record.chrom} is not a valid chromosome name")
+                ) from e
 
         return chromosome
 
@@ -82,15 +88,22 @@ class Chromosome(models.Model):
         numbers_to_name_map: Dict[int, str] = {}
 
         for i in range(1, 23):
-            names_to_number_map[f'chr{i}'] = i
+            names_to_number_map[f"chr{i}"] = i
             numbers_to_name_map[i] = str(i)
 
         names_to_number_map.update(
-            {'X': 23, 'chrX': 23, 'Y': 24, 'chrY': 24, 'XY': 25, 'chrXY': 25, 'chrM': 26, 'MT': 26}
+            {
+                "X": 23,
+                "chrX": 23,
+                "Y": 24,
+                "chrY": 24,
+                "XY": 25,
+                "chrXY": 25,
+                "chrM": 26,
+                "MT": 26,
+            }
         )
-        numbers_to_name_map.update(
-            {23: 'X', 24: 'Y', 25: 'XY', 26: 'M'}
-        )
+        numbers_to_name_map.update({23: "X", 24: "Y", 25: "XY", 26: "M"})
 
         @classmethod
         def name_to_number(cls, name):
@@ -110,11 +123,11 @@ class AllelesRecord(models.Model):
     @staticmethod
     def from_tuple(alleles):
         if alleles == (None, None):
-            return './.'
+            return "./."
 
         if alleles == (1, 0):
-            return '0/1'
-        return '/'.join(map(str, alleles))
+            return "0/1"
+        return "/".join(map(str, alleles))
 
     @classmethod
     def from_sample(cls, sample: VariantRecordSample):
@@ -149,23 +162,29 @@ class YHaplogroup(models.Model):
 
 
 class Sample(models.Model):
-
     class Gender(models.TextChoices):
-        FEMALE = 'F', _('Female')
-        MALE = 'M', _('Male')
-        OTHER = 'O', _('Other')
-        UNDEFINED = 'U', _('Undefined')
+        FEMALE = "F", _("Female")
+        MALE = "M", _("Male")
+        OTHER = "O", _("Other")
+        UNDEFINED = "U", _("Undefined")
 
     cypher = models.CharField(max_length=255, primary_key=True)
-    gender = models.CharField(max_length=15, choices=Gender.choices, default=Gender.UNDEFINED)
+    gender = models.CharField(
+        max_length=15, choices=Gender.choices, default=Gender.UNDEFINED
+    )
     nationality = models.ForeignKey(
-        to=Nationality, on_delete=models.SET_NULL, null=True, blank=True, related_name='sample'
+        to=Nationality,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sample",
     )
     predicted_nationality = models.ForeignKey(
         to=Nationality,
         on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='predicted_nationality_sample'
+        null=True,
+        blank=True,
+        related_name="predicted_nationality_sample",
     )
     mitochondrial_haplogroup = models.ForeignKey(
         to=MitochondriaHaplogroup, on_delete=models.SET_NULL, null=True
@@ -173,7 +192,9 @@ class Sample(models.Model):
     Y_haplogroup = models.ForeignKey(
         to=YHaplogroup, on_delete=models.SET_NULL, null=True, blank=True
     )
-    vcf_file = models.ForeignKey(to=RawVCF, on_delete=models.SET_NULL, null=True, blank=True)
+    vcf_file = models.ForeignKey(
+        to=RawVCF, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     def __str__(self):
         return self.cypher
@@ -181,7 +202,7 @@ class Sample(models.Model):
     def to_vcf(self) -> VCFFile:
         vcf_file = VCFFile(sample=str(self))
 
-        variants = Variant.objects.filter(sample=self).select_related('snp')
+        variants = Variant.objects.filter(sample=self).select_related("snp")
 
         for variant in variants:
             vcf_record = VCFRecord(
@@ -191,7 +212,7 @@ class Sample(models.Model):
                 sample_indexes=variant.alleles_record,
                 ref=str(variant.snp.reference_allele),
                 alts=[str(variant.snp.alternative_allele)],
-                id_=variant.snp.name
+                id_=variant.snp.name,
             )
             vcf_file.add_record(vcf_record)
 
@@ -205,24 +226,27 @@ class Sample(models.Model):
 class SNP(models.Model):
     class Meta:
         unique_together = (
-            ('chromosome', 'position', 'reference_allele', 'alternative_allele'),
+            ("chromosome", "position", "reference_allele", "alternative_allele"),
         )
+
     name = models.CharField(max_length=255, blank=True)
     chromosome = models.ForeignKey(to=Chromosome, on_delete=models.CASCADE)
     position = models.IntegerField(blank=False)
     reference_allele = models.ForeignKey(
-        to=Allele, on_delete=models.CASCADE, related_name='ref_to_snp'
+        to=Allele, on_delete=models.CASCADE, related_name="ref_to_snp"
     )
     alternative_allele = models.ForeignKey(
-        to=Allele, on_delete=models.CASCADE, related_name='alt_to_snp'
+        to=Allele, on_delete=models.CASCADE, related_name="alt_to_snp"
     )
 
     def __str__(self):
-        return f'{self.name} chr{self.chromosome} {self.position} ' \
-               f'REF: {self.reference_allele} ALT: {self.alternative_allele}'
+        return (
+            f"{self.name} chr{self.chromosome} {self.position} "
+            f"REF: {self.reference_allele} ALT: {self.alternative_allele}"
+        )
 
     def get_samples(self) -> List[Sample]:
-        variants_with_snp = Variant.objects.filter(snp=self).select_related('sample')
+        variants_with_snp = Variant.objects.filter(snp=self).select_related("sample")
         samples = [v.sample for v in variants_with_snp]
         return samples
 
@@ -241,17 +265,19 @@ class Variant(models.Model):
         alleles = self.alleles.all()
 
         if len(alleles) == 1:
-            genotype = f'{alleles[0]}, {alleles[0]}'
+            genotype = f"{alleles[0]}, {alleles[0]}"
         else:
-            genotype = ', '.join(str(allele) for allele in alleles) or 'unknown'
+            genotype = ", ".join(str(allele) for allele in alleles) or "unknown"
         return genotype
 
     def __str__(self):
-        return f'Sample: {self.sample}, SNP: {self.snp}, genotype: {self.alleles_record} ' \
-               f'({self.get_genotype_string()})'
+        return (
+            f"Sample: {self.sample}, SNP: {self.snp}, genotype: {self.alleles_record} "
+            f"({self.get_genotype_string()})"
+        )
 
     def calculate_similarity(
-            self, alleles: Tuple[Allele], metric=identity_percentage
+        self, alleles: Tuple[Allele], metric=identity_percentage
     ) -> float:
         variant_alleles = tuple(self.alleles.all())
 
