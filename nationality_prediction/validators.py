@@ -10,7 +10,7 @@ from pysam import VariantFile
 def check_number_of_samples(file: InMemoryUploadedFile):
     with tempfile.NamedTemporaryFile(suffix=".vcf") as f:
         f.write(file.read())
-        f.seek(0)
+        file.seek(0)
 
         logger.info("Saved VCF to the temporary file {}", f.name)
         logger.debug("Is file readable: {}", f.readable())
