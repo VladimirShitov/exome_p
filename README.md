@@ -55,3 +55,9 @@ $ docker-compose exec db psql --username=${SQL_USER} --dbname=${SQL_DATABASE}
 ```console
 $ docker-compose exec web poetry run python manage.py test
 ```
+
+## Running code style checks:
+```console
+$ black .
+$ isort -rc exome_p
+```
