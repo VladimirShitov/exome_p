@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "files_uploading",
+    "vcf_uploading",
     "nationality_prediction",
 ]
 

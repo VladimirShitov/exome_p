@@ -16,9 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from files_uploading.views import (index, samples_list, snp_search_form,
-                                   vcf_file_download, vcf_file_upload,
-                                   vcf_files_list)
+from vcf_uploading.views import (index, samples_list, snp_search_form,
+                                 vcf_file_download, vcf_file_upload,
+                                 vcf_files_list)
 from nationality_prediction.views import upload_genotype_for_prediction
 
 urlpatterns = [
