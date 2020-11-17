@@ -25,6 +25,8 @@ If something went wrong, you can check logs by running:
 $ docker-compose logs -f
 ```
 
+5. Open http://127.0.0.1:8000/ in the web-browser
+
 # Useful commands
 
 ## Executing commands in the container
