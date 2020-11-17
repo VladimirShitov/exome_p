@@ -16,22 +16,22 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from files_uploading.views import (
-    vcf_file_upload,
-    vcf_files_list,
-    vcf_file_download,
-    index,
-    samples_list,
-    snp_search_form,
-)
-
+from files_uploading.views import (index, samples_list, snp_search_form,
+                                   vcf_file_download, vcf_file_upload,
+                                   vcf_files_list)
+from nationality_prediction.views import upload_genotype_for_prediction
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', index, name='index'),
-    path('file/vcf/', vcf_file_upload, name='upload'),
-    path('file/vcf/list', vcf_files_list, name='vcf_list'),
-    path('file/vcf/<int:file_id>', vcf_file_download, name='vcf_file'),
-    path('vcf/sample/list', samples_list, name='samples_list'),
-    path('snp/search', snp_search_form, name='snp_search'),
+    path("admin/", admin.site.urls),
+    path("", index, name="index"),
+    path("file/vcf/", vcf_file_upload, name="upload"),
+    path("file/vcf/list", vcf_files_list, name="vcf_list"),
+    path("file/vcf/<int:file_id>", vcf_file_download, name="vcf_file"),
+    path("vcf/sample/list", samples_list, name="samples_list"),
+    path("snp/search", snp_search_form, name="snp_search"),
+    path(
+        "nationality/predict",
+        upload_genotype_for_prediction,
+        name="nationality_prediction",
+    ),
 ]

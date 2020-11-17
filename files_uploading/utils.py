@@ -1,23 +1,25 @@
 from operator import itemgetter
+from typing import List, Optional, Tuple
 
 from django.http import QueryDict
 from loguru import logger
 from pysam import VariantRecord
-from typing import List, Optional, Tuple
 
-from .models import Allele, AllelesRecord, Chromosome, Sample, SNP, Variant, VCFFile
-from .types import SamplesDict, SamplesSimilarityTable, VariantSimilarity, VariantDict
+from .models import (SNP, Allele, AllelesRecord, Chromosome, RawVCF, Sample,
+                     Variant)
+from .types import (SamplesDict, SamplesSimilarityTable, VariantDict,
+                    VariantSimilarity)
 
 
 def are_samples_empty(record: VariantRecord) -> bool:
     if not record.samples.items():
-        logger.warning('No samples detected')
-        logger.info('Finishing reading the file')
+        logger.warning("No samples detected")
+        logger.info("Finishing reading the file")
         return True
     return False
 
 
-def parse_samples(record: VariantRecord, vcf_file: VCFFile) -> Optional[SamplesDict]:
+def parse_samples(record: VariantRecord, vcf_file: RawVCF) -> Optional[SamplesDict]:
     samples: Optional[SamplesDict] = {}
 
     for sample_name, sample in record.samples.items():
@@ -31,13 +33,15 @@ def parse_samples(record: VariantRecord, vcf_file: VCFFile) -> Optional[SamplesD
             samples[sample_name] = sample_db_record
         else:
             logger.warning(  # TODO: handle it smarter
-                'Sample {} already exists in the database. Ignoring', sample_name
+                "Sample {} already exists in the database. Ignoring", sample_name
             )
 
     return samples
 
 
-def create_snp(chromosome: Chromosome, record: VariantRecord, ref: Allele, alt: Allele) -> SNP:
+def create_snp(
+    chromosome: Chromosome, record: VariantRecord, ref: Allele, alt: Allele
+) -> SNP:
     snp, created = SNP.objects.get_or_create(
         chromosome=chromosome,
         position=record.pos,
@@ -67,14 +71,14 @@ def create_variants_from_record(record: VariantRecord, snp: SNP, samples: Sample
         )
 
         for allele in sample.alleles:
-            if allele is not None:
-                variant.alleles.add(Allele.from_str(allele))
+            variant.alleles.add(Allele.from_str(allele or "."))
 
 
 def is_record_incomplete(record: VariantRecord) -> bool:
     """Check if `record` is missing a required field: e.g chromosome, alleles or position"""
     return any(
-        field is None or not field for field in (record.chrom, record.alts, record.ref, record.pos)
+        field is None or not field
+        for field in (record.chrom, record.alts, record.ref, record.pos)
     )
 
 
@@ -89,27 +93,29 @@ def save_record_to_db(record: VariantRecord, samples: SamplesDict):
         chromosome=chromosome,
         record=record,
         alt=alternative_allele,
-        ref=reference_allele
+        ref=reference_allele,
     )
     create_variants_from_record(record=record, snp=snp, samples=samples)
 
 
-def get_genotype(allele_1: str, allele_2:str) -> Tuple[Allele]:
+def get_genotype(allele_1: str, allele_2: str) -> Tuple[Allele]:
     return Allele.objects.get(genotype=allele_1), Allele.objects.get(genotype=allele_2)
 
 
 def get_samples_from_snp(request_dict: QueryDict) -> SamplesSimilarityTable:
-    genotype: Tuple[Allele] = get_genotype(request_dict['allele_1'], request_dict['allele_2'])
+    genotype: Tuple[Allele] = get_genotype(
+        request_dict["allele_1"], request_dict["allele_2"]
+    )
 
     snps = SNP.objects.filter(
-        chromosome=request_dict['chromosome'],
-        position=request_dict['position'],
+        chromosome=request_dict["chromosome"],
+        position=request_dict["position"],
     )
 
     weighted_samples: List[VariantSimilarity] = []
 
     for snp in snps:
-        variants = Variant.objects.filter(snp=snp).select_related('sample')
+        variants = Variant.objects.filter(snp=snp).select_related("sample")
         for variant in variants:
             similarity = variant.calculate_similarity(genotype)
             if similarity > 0:
@@ -129,10 +135,10 @@ def get_samples_from_snp(request_dict: QueryDict) -> SamplesSimilarityTable:
 
 def get_snp_from_snp_search_form(request_dict: QueryDict) -> VariantDict:
     snp_dict = {
-        'chromosome': request_dict['chromosome'],
-        'position': request_dict['position'],
-        'allele_1': request_dict['allele_1'],
-        'allele_2': request_dict['allele_2'],
+        "chromosome": request_dict["chromosome"],
+        "position": request_dict["position"],
+        "allele_1": request_dict["allele_1"],
+        "allele_2": request_dict["allele_2"],
     }
 
     return snp_dict

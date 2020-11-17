@@ -25,6 +25,8 @@ If something went wrong, you can check logs by running:
 $ docker-compose logs -f
 ```
 
+5. Open http://127.0.0.1:8000/ in the web-browser
+
 # Useful commands
 
 ## Executing commands in the container
@@ -54,4 +56,10 @@ $ docker-compose exec db psql --username=${SQL_USER} --dbname=${SQL_DATABASE}
 ## Running tests
 ```console
 $ docker-compose exec web poetry run python manage.py test
+```
+
+## Running code style checks:
+```console
+$ black .
+$ isort -rc exome_p
 ```

@@ -1,17 +1,8 @@
 from django.contrib import admin
 
-from .models import (
-    Allele,
-    AllelesRecord,
-    Chromosome,
-    SNP,
-    Nationality,
-    MitochondriaHaplogroup,
-    YHaplogroup,
-    Sample,
-    Variant,
-)
-
+from .models import (SNP, Allele, AllelesRecord, Chromosome,
+                     MitochondriaHaplogroup, Nationality, Sample, Variant,
+                     YHaplogroup)
 
 admin.site.register(Allele)
 admin.site.register(AllelesRecord)
