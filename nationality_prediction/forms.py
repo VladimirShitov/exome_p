@@ -14,8 +14,6 @@ class VCFUploadForm(forms.Form):
     @staticmethod
     def predict_nationality(vcf_file):
         logger.info("Predicting nationality for file {}", vcf_file)
-        logger.debug("Type of file: {}", type(vcf_file))
-        logger.debug("dir of file: {}", dir(vcf_file))
 
         predictor = FastNGSAdmixPredictor(vcf_file)
         return predictor.predict()
