@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-12">
+            <h1>The most similar samples</h1>
+            {% if not result.samples %}
+                <div class="alert alert-warning"><p>No similar samples found</p></div>
+            {% else %}
+                <table class="table" id="MostSimilarSamples">
+                    <thead>
+                        <th scope="col">Sample</th>
+                        <th scope="col">Similarity</th>
+                    </thead>
+                    <tbody>
+                        {% for sample, similarity in result.samples.items %}
+                            <tr>
+                                <td>{{ sample }}</td>
+                                <td>{{ similarity }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        {% for query in result.snp_queries %}
+            <div class="col-12">
+                <ul>
+                    {% for key, value in query.variant_dict %}
+                        <li><b>{{ key }}</b>: {{ value }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-12">
+                <table class="table" class="">
+                    <thead>
+                        {% for col_name in query.similarity_table.header %}
+                            <th scope="col">{{ col_name }}</th>
+                        {% endfor %}
+                    </thead>
+                    <tbody>
+                        {% for row in query.similarity_table.content %}
+                            <tr>
+                                {% for cell_content in row %}
+                                    <td>{{ cell_content }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+
+    </div>
+{% endblock %}
