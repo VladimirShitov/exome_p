@@ -1,4 +1,5 @@
 from collections import namedtuple
+from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Tuple, TypedDict, cast
 
@@ -41,3 +42,15 @@ class SamplesSimilarityTable(Table):
 
     def __init__(self, content: List[tuple]):
         super().__init__(header=self.header, content=content)
+
+
+@dataclass
+class SNPSearchResult:
+    snp_query: VariantDict
+    similarity_table: SamplesSimilarityTable
+
+
+@dataclass
+class SamplesSearchResult:
+    samples: Dict[str, float]
+    snp_queries: List[SNPSearchResult]
