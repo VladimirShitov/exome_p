@@ -5,8 +5,8 @@ from loguru import logger
 
 from .forms import SNPSearchForm, VCFFileForm
 from .models import RawVCF, Sample
-from .types import SamplesSimilarityTable, VariantDict
-from .utils import get_samples_from_snp, get_snp_from_snp_search_form
+from .types import SamplesSearchResult
+from .utils import get_similar_samples_from_snp
 
 
 def index(request):
@@ -59,26 +59,19 @@ def snp_search_form(
     request,
     form_class=SNPSearchForm,
     form_template="snp_search.html",
-    result_template="table_viewer.html",
+    result_template="snp_search_result.html",
 ):
     formset_class = formset_factory(form_class)
 
     if request.method == "POST":
         logger.info("{} received a POST request", snp_search_form.__name__)
         formset = formset_class(request.POST)
+
         if formset.is_valid():
             logger.success("Formset is valid, returning success")
-            logger.debug("Formset: {}", formset)
-            logger.debug("POST: {}", request.POST)
+            samples: SamplesSearchResult = get_similar_samples_from_snp(formset)
+            return render(request, result_template, {"result": samples})
 
-            samples: SamplesSimilarityTable = get_samples_from_snp(request.POST)
-            snp_description: VariantDict = get_snp_from_snp_search_form(request.POST)
-
-            return render(
-                request,
-                result_template,
-                {"table": samples, "description": snp_description},
-            )
         else:
             logger.warning("Formset is not valid")
             return render(request, form_template, {"formset": formset})
