@@ -1,3 +1,4 @@
+from django.forms import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import render
 from loguru import logger
@@ -60,22 +61,28 @@ def snp_search_form(
     form_template="snp_search.html",
     result_template="table_viewer.html",
 ):
+    formset_class = formset_factory(form_class)
+
     if request.method == "POST":
         logger.info("{} received a POST request", snp_search_form.__name__)
-        form = form_class(request.POST)
-        if form.is_valid():
-            logger.success("Form is valid, returning success")
+        formset = formset_class(request.POST)
+        if formset.is_valid():
+            logger.success("Formset is valid, returning success")
+            logger.debug("Formset: {}", formset)
+            logger.debug("POST: {}", request.POST)
+
             samples: SamplesSimilarityTable = get_samples_from_snp(request.POST)
             snp_description: VariantDict = get_snp_from_snp_search_form(request.POST)
+
             return render(
                 request,
                 result_template,
                 {"table": samples, "description": snp_description},
             )
         else:
-            logger.warning("Form is not valid")
-            return render(request, form_template, {"form": form})
+            logger.warning("Formset is not valid")
+            return render(request, form_template, {"formset": formset})
     else:
-        form = form_class
+        formset = formset_class()
 
-    return render(request, form_template, {"form": form})
+    return render(request, form_template, {"formset": formset})
