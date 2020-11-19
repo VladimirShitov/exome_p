@@ -40,7 +40,7 @@ class Table:
 class SamplesSimilarityTable(Table):
     header = cast(Tuple[str], (_("Sample"), _("Genotype"), _("Similarity")))
 
-    def __init__(self, content: List[tuple]):
+    def __init__(self, content: List[VariantSimilarity]):
         super().__init__(header=self.header, content=content)
 
 
