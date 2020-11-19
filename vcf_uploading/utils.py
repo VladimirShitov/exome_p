@@ -158,10 +158,12 @@ def get_similar_samples_from_snp(snps_formset) -> SamplesSearchResult:
 
 def get_snp_from_snp_search_form(request_dict: QueryDict) -> VariantDict:
     snp_dict = {
-        "chromosome": request_dict["chromosome"],
-        "position": request_dict["position"],
-        "allele_1": request_dict["allele_1"],
-        "allele_2": request_dict["allele_2"],
+        "chromosome": Chromosome.NamesMapper.number_to_name(
+            int(request_dict["chromosome"].data)
+        ),
+        "position": request_dict["position"].data,
+        "allele_1": request_dict["allele_1"].data,
+        "allele_2": request_dict["allele_2"].data,
     }
 
     return snp_dict
