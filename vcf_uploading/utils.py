@@ -6,10 +6,15 @@ from django.http import QueryDict
 from loguru import logger
 from pysam import VariantRecord
 
-from .models import (SNP, Allele, AllelesRecord, Chromosome, RawVCF, Sample,
-                     Variant)
-from .types import (SamplesDict, SamplesSearchResult, SamplesSimilarityTable,
-                    SNPSearchResult, VariantDict, VariantSimilarity)
+from .models import SNP, Allele, AllelesRecord, Chromosome, RawVCF, Sample, Variant
+from .types import (
+    SamplesDict,
+    SamplesSearchResult,
+    SamplesSimilarityTable,
+    SNPSearchResult,
+    VariantDict,
+    VariantSimilarity,
+)
 
 
 def are_samples_empty(record: VariantRecord) -> bool:
@@ -147,11 +152,11 @@ def get_similar_samples_from_snp(snps_formset) -> SamplesSearchResult:
         results.append(snp_search_result)
 
     for sample in samples_similarity.keys():
-        samples_similarity[sample] = round(
-            samples_similarity[sample] /len(results), 4
-        )
+        samples_similarity[sample] = round(samples_similarity[sample] / len(results), 4)
 
-    search_result = SamplesSearchResult(samples=dict(samples_similarity), snp_queries=results)
+    search_result = SamplesSearchResult(
+        samples=dict(samples_similarity), snp_queries=results
+    )
 
     return search_result
 
