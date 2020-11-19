@@ -110,7 +110,7 @@ class Chromosome(models.Model):
             return cls.names_to_number_map[name]
 
         @classmethod
-        def number_to_name(cls, number):
+        def number_to_name(cls, number: int):
             return cls.numbers_to_name_map[number]
 
     def __str__(self):
