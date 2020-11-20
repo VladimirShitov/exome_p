@@ -10,6 +10,7 @@ from .models import SNP, Allele, AllelesRecord, Chromosome, RawVCF, Sample, Vari
 from .types import (
     SamplesDict,
     SamplesSearchResult,
+    GenotypesSimilarityTable,
     SamplesSimilarityTable,
     SNPSearchResult,
     VariantDict,
@@ -143,7 +144,7 @@ def get_similar_samples_from_snp(snps_formset) -> SamplesSearchResult:
 
         snp_search_results.sort(key=itemgetter(2), reverse=True)
 
-        samples = SamplesSimilarityTable(content=snp_search_results)
+        samples = GenotypesSimilarityTable(content=snp_search_results)
         snp_query = get_snp_from_snp_search_form(snp_form)
 
         snp_search_result = SNPSearchResult(
@@ -154,8 +155,12 @@ def get_similar_samples_from_snp(snps_formset) -> SamplesSearchResult:
     for sample in samples_similarity.keys():
         samples_similarity[sample] = round(samples_similarity[sample] / len(results), 4)
 
+    samples_table = SamplesSimilarityTable(
+        content=sorted(samples_similarity.items(), key=itemgetter(1), reverse=True)
+    )
+
     search_result = SamplesSearchResult(
-        samples=dict(samples_similarity), snp_queries=results
+        samples=samples_table, snp_queries=results
     )
 
     return search_result

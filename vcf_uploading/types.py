@@ -44,6 +44,13 @@ class GenotypesSimilarityTable(Table):
         super().__init__(header=self.header, content=content)
 
 
+class SamplesSimilarityTable(Table):
+    header = cast(Tuple[str], (_("Sample"), _("Similarity")))
+
+    def __init__(self, content: List[tuple]):
+        super().__init__(header=self.header, content=content)
+
+
 @dataclass
 class SNPSearchResult:
     snp_query: VariantDict
@@ -52,5 +59,5 @@ class SNPSearchResult:
 
 @dataclass
 class SamplesSearchResult:
-    samples: Dict[str, float]
+    samples: SamplesSimilarityTable
     snp_queries: List[SNPSearchResult]
