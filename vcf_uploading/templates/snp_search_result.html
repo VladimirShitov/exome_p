@@ -10,14 +10,16 @@
             {% else %}
                 <table class="table" id="MostSimilarSamples">
                     <thead>
-                        <th scope="col">Sample</th>
-                        <th scope="col">Similarity</th>
+                        {% for col_name in result.samples.header %}
+                            <th scope="col">{{ col_name }}</th>
+                        {% endfor %}
                     </thead>
                     <tbody>
-                        {% for sample, similarity in result.samples.items %}
+                        {% for row in result.samples.content %}
                             <tr>
-                                <td>{{ sample }}</td>
-                                <td>{{ similarity }}</td>
+                                {% for cell_content in row %}
+                                    <td>{{ cell_content }}</td>
+                                {% endfor %}
                             </tr>
                         {% endfor %}
                     </tbody>
