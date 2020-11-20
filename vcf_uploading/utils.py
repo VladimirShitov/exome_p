@@ -8,9 +8,9 @@ from pysam import VariantRecord
 
 from .models import SNP, Allele, AllelesRecord, Chromosome, RawVCF, Sample, Variant
 from .types import (
+    GenotypesSimilarityTable,
     SamplesDict,
     SamplesSearchResult,
-    GenotypesSimilarityTable,
     SamplesSimilarityTable,
     SNPSearchResult,
     VariantDict,
@@ -159,9 +159,7 @@ def get_similar_samples_from_snp(snps_formset) -> SamplesSearchResult:
         content=sorted(samples_similarity.items(), key=itemgetter(1), reverse=True)
     )
 
-    search_result = SamplesSearchResult(
-        samples=samples_table, snp_queries=results
-    )
+    search_result = SamplesSearchResult(samples=samples_table, snp_queries=results)
 
     return search_result
 

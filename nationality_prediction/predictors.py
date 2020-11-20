@@ -7,9 +7,9 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils.translation import gettext_lazy as _
 from loguru import logger
 
-from vcf_uploading.vcf_processing import VCFFile
 from nationality_prediction.command_line_tools import run_fastngsadmix, run_plink
 from nationality_prediction.constants import FAST_NGS_ADMIX_OUTPUT, VCF_FILENAME
+from vcf_uploading.vcf_processing import VCFFile
 
 
 class FastNGSAdmixPredictor:
