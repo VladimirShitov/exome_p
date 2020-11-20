@@ -37,7 +37,7 @@ class Table:
         return bool(self.content)
 
 
-class SamplesSimilarityTable(Table):
+class GenotypesSimilarityTable(Table):
     header = cast(Tuple[str], (_("Sample"), _("Genotype"), _("Similarity")))
 
     def __init__(self, content: List[VariantSimilarity]):
@@ -47,7 +47,7 @@ class SamplesSimilarityTable(Table):
 @dataclass
 class SNPSearchResult:
     snp_query: VariantDict
-    similarity_table: SamplesSimilarityTable
+    similarity_table: GenotypesSimilarityTable
 
 
 @dataclass
