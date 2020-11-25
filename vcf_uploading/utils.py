@@ -70,6 +70,9 @@ def create_snp(
 
 def create_variants_from_record(record: VariantRecord, snp: SNP, samples: SamplesDict):
     for sample_name, sample in record.samples.items():
+        if sample_name not in samples:
+            continue
+
         alleles_record: AllelesRecord = AllelesRecord.from_sample(sample)
 
         sample_db_record = samples[sample_name]
