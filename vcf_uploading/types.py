@@ -1,4 +1,5 @@
 from collections import namedtuple
+from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Tuple, TypedDict, cast
 
@@ -36,8 +37,27 @@ class Table:
         return bool(self.content)
 
 
-class SamplesSimilarityTable(Table):
+class GenotypesSimilarityTable(Table):
     header = cast(Tuple[str], (_("Sample"), _("Genotype"), _("Similarity")))
+
+    def __init__(self, content: List[VariantSimilarity]):
+        super().__init__(header=self.header, content=content)
+
+
+class SamplesSimilarityTable(Table):
+    header = cast(Tuple[str], (_("Sample"), _("Similarity")))
 
     def __init__(self, content: List[tuple]):
         super().__init__(header=self.header, content=content)
+
+
+@dataclass
+class SNPSearchResult:
+    snp_query: VariantDict
+    similarity_table: GenotypesSimilarityTable
+
+
+@dataclass
+class SamplesSearchResult:
+    samples: SamplesSimilarityTable
+    snp_queries: List[SNPSearchResult]

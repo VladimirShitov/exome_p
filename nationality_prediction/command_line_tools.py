@@ -3,9 +3,11 @@ from pathlib import Path
 
 from loguru import logger
 
-from nationality_prediction.constants import (FAST_NGS_ADMIX_OUTPUT_PREFIX,
-                                              PLINK_OUTPUT_PREFIX,
-                                              VCF_FILENAME)
+from nationality_prediction.constants import (
+    FAST_NGS_ADMIX_OUTPUT_PREFIX,
+    PLINK_OUTPUT_PREFIX,
+    VCF_FILENAME,
+)
 
 
 def run_plink(dir_path: Path):

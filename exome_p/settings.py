@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import sys
+from pathlib import Path
 
 import environ
 from loguru import logger
@@ -21,7 +22,7 @@ env = environ.Env()
 environ.Env.read_env()  # reading .env file
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parent.parent
 logger.debug("App base dir is {}", BASE_DIR)
 
 # Quick-start development settings - unsuitable for production
@@ -49,7 +50,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "files_uploading",
+    "vcf_uploading",
     "nationality_prediction",
 ]
 
@@ -68,7 +69,7 @@ ROOT_URLCONF = "exome_p.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -90,7 +91,7 @@ WSGI_APPLICATION = "exome_p.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
-        "NAME": os.environ.get("SQL_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
+        "NAME": os.environ.get("SQL_DATABASE", BASE_DIR / "db.sqlite3"),
         "USER": os.environ.get("SQL_USER", "user"),
         "PASSWORD": os.environ.get("SQL_PASSWORD", "password"),
         "HOST": os.environ.get("SQL_HOST", "localhost"),
@@ -136,3 +137,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = "/static/"
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]

@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from files_uploading.metrics import identity_percentage
-from files_uploading.models import Allele
+from vcf_uploading.metrics import identity_percentage
+from vcf_uploading.models import Allele
 
 
 class MetricsTestCase(TestCase):

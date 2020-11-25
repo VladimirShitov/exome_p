@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+    <style>
+        a.delete-row {
+            margin-left: 15px;
+            color: #F08080;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <form id="SNPSearchForm" action="{% url "snp_search" %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <table class="table">
+                    <thead>
+                        <th scope="col">Chromosome</th>
+                        <th scope="col">Position</th>
+                        <th scope="col">Reference allele</th>
+                        <th scope="col">Alternative allele</th>
+                    </thead>
+                    <tbody>
+                        {% for form in formset %}
+                            <tr class="SNProw">
+                            {% for field in form %}
+                                <td>{{ field }}</td>
+                            {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {{ formset.management_form }}
+                <button type="submit" class="btn btn-success">Search</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% load static %}
+    <script src="{% static 'jquery.formset.js' %}"></script>
+
+    <script type="text/javascript">
+        $(function() {
+            $('.SNProw').formset(
+                {
+                    addText: "Add SNP",
+                    deleteText: "Delete row"
+                }
+            );
+        })
+    </script>
+{% endblock %}

@@ -1,14 +1,21 @@
+from collections import defaultdict
 from operator import itemgetter
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from django.http import QueryDict
 from loguru import logger
 from pysam import VariantRecord
 
-from .models import (SNP, Allele, AllelesRecord, Chromosome, RawVCF, Sample,
-                     Variant)
-from .types import (SamplesDict, SamplesSimilarityTable, VariantDict,
-                    VariantSimilarity)
+from .models import SNP, Allele, AllelesRecord, Chromosome, RawVCF, Sample, Variant
+from .types import (
+    GenotypesSimilarityTable,
+    SamplesDict,
+    SamplesSearchResult,
+    SamplesSimilarityTable,
+    SNPSearchResult,
+    VariantDict,
+    VariantSimilarity,
+)
 
 
 def are_samples_empty(record: VariantRecord) -> bool:
@@ -63,6 +70,9 @@ def create_snp(
 
 def create_variants_from_record(record: VariantRecord, snp: SNP, samples: SamplesDict):
     for sample_name, sample in record.samples.items():
+        if sample_name not in samples:
+            continue
+
         alleles_record: AllelesRecord = AllelesRecord.from_sample(sample)
 
         sample_db_record = samples[sample_name]
@@ -102,43 +112,69 @@ def get_genotype(allele_1: str, allele_2: str) -> Tuple[Allele]:
     return Allele.objects.get(genotype=allele_1), Allele.objects.get(genotype=allele_2)
 
 
-def get_samples_from_snp(request_dict: QueryDict) -> SamplesSimilarityTable:
-    genotype: Tuple[Allele] = get_genotype(
-        request_dict["allele_1"], request_dict["allele_2"]
-    )
+def get_similar_samples_from_snp(snps_formset) -> SamplesSearchResult:
+    similar_samples: Dict[str, float]
+    results: List[SNPSearchResult] = []
+    samples_similarity: Dict[str, float] = defaultdict(float)
 
-    snps = SNP.objects.filter(
-        chromosome=request_dict["chromosome"],
-        position=request_dict["position"],
-    )
+    for snp_form in snps_formset:
 
-    weighted_samples: List[VariantSimilarity] = []
+        genotype: Tuple[Allele] = get_genotype(
+            snp_form["allele_1"].data, snp_form["allele_2"].data
+        )
 
-    for snp in snps:
-        variants = Variant.objects.filter(snp=snp).select_related("sample")
-        for variant in variants:
-            similarity = variant.calculate_similarity(genotype)
-            if similarity > 0:
-                weighted_samples.append(
-                    VariantSimilarity(
-                        sample=variant.sample,
-                        genotype=variant.get_genotype_string(),
-                        similarity=similarity,
+        snps = SNP.objects.filter(
+            chromosome=snp_form["chromosome"].data,
+            position=snp_form["position"].data,
+        )
+
+        snp_search_results: List[VariantSimilarity] = []
+
+        for snp in snps:
+            variants = Variant.objects.filter(snp=snp).select_related("sample")
+            for variant in variants:
+                similarity = variant.calculate_similarity(genotype)
+                if similarity > 0:
+                    sample = str(variant.sample)
+                    samples_similarity[sample] += similarity
+                    snp_search_results.append(
+                        VariantSimilarity(
+                            sample=sample,
+                            genotype=variant.get_genotype_string(),
+                            similarity=similarity,
+                        )
                     )
-                )
 
-    weighted_samples.sort(key=itemgetter(2), reverse=True)
-    samples = SamplesSimilarityTable(content=weighted_samples)
+        snp_search_results.sort(key=itemgetter(2), reverse=True)
 
-    return samples
+        samples = GenotypesSimilarityTable(content=snp_search_results)
+        snp_query = get_snp_from_snp_search_form(snp_form)
+
+        snp_search_result = SNPSearchResult(
+            snp_query=snp_query, similarity_table=samples
+        )
+        results.append(snp_search_result)
+
+    for sample in samples_similarity.keys():
+        samples_similarity[sample] = round(samples_similarity[sample] / len(results), 4)
+
+    samples_table = SamplesSimilarityTable(
+        content=sorted(samples_similarity.items(), key=itemgetter(1), reverse=True)
+    )
+
+    search_result = SamplesSearchResult(samples=samples_table, snp_queries=results)
+
+    return search_result
 
 
 def get_snp_from_snp_search_form(request_dict: QueryDict) -> VariantDict:
     snp_dict = {
-        "chromosome": request_dict["chromosome"],
-        "position": request_dict["position"],
-        "allele_1": request_dict["allele_1"],
-        "allele_2": request_dict["allele_2"],
+        "chromosome": Chromosome.NamesMapper.number_to_name(
+            int(request_dict["chromosome"].data)
+        ),
+        "position": request_dict["position"].data,
+        "allele_1": request_dict["allele_1"].data,
+        "allele_2": request_dict["allele_2"].data,
     }
 
     return snp_dict

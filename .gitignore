@@ -137,4 +137,4 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-/files_uploading/migrations/
+/vcf_uploading/migrations/
