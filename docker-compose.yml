@@ -5,8 +5,6 @@ services:
       context: .
       dockerfile: Dockerfile
     command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - ./:/usr/src/exome_p/
     ports:
       - 8000:8000
     env_file:
