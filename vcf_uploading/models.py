@@ -1,13 +1,15 @@
+from datetime import timedelta
 from typing import Dict, List, Tuple
 
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from loguru import logger
 from pysam.libcbcf import VariantRecord, VariantRecordSample
 
 from nationality_prediction.predictors import FastNGSAdmixPredictor
-
 from .vcf_processing import VCFFile, VCFRecord
 
 
@@ -16,6 +18,27 @@ def get_deleted_sample():
 
 
 class RawVCF(models.Model):
+    class VCFTimeCheckingManager(models.Manager):
+        _TIME_THRESHOLD = timedelta(minutes=45)
+
+        def get_queryset(self):
+            """Return only files that were uploaded recently or are already saved
+
+            Files that were uploaded earlier that current time - `self._TIME_THRESHOLD`
+            are deleted in this query
+            """
+            keep_files_after = timezone.now() - self._TIME_THRESHOLD
+
+            not_saved_vcfs = super().get_queryset().filter(
+                date_created__lt=keep_files_after, saved=False
+            )
+            deletion_log = not_saved_vcfs.delete()
+            logger.info("Deleted not saved VCF: {}", deletion_log)
+
+            return super().get_queryset().filter(
+                Q(saved=True) | Q(date_created__gte=keep_files_after)
+            )
+
     from .validators import check_vcf_format
 
     file = models.FileField(
@@ -25,6 +48,9 @@ class RawVCF(models.Model):
             FileExtensionValidator(allowed_extensions=["vcf", "vcf.gz", "bcf", "gz"]),
         ],
     )
+    date_created = models.DateTimeField(auto_now_add=True)
+    saved = models.BooleanField(default=False)
+    objects = VCFTimeCheckingManager()
 
 
 class Allele(models.Model):
