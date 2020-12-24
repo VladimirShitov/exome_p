@@ -13,26 +13,34 @@ def index(request):
     return render(request, "base.html")
 
 
-def vcf_file_upload(request):
+def vcf_file_upload(
+        request,
+        form_class=VCFFileForm,
+        form_template="upload.html",
+        result_template="vcf_summary.html"
+):
     if request.method == "POST":
         logger.info("{} received a POST request", vcf_file_upload.__name__)
-        form = VCFFileForm(request.POST, request.FILES)
+        form = form_class(request.POST, request.FILES)
         logger.debug("REQUEST.FILES: {}", request.FILES)
 
         if form.is_valid():
-            logger.info("Form is valid, trying to save the file")
-            form.save()
+            logger.info("Form is valid, trying to calculate statistics")
+            vcf = RawVCF(file=form.cleaned_data["file"])
+            vcf.save()
+            vcf.calculate_statistics()
+
             logger.success("Saved the file, returning success")
-            return HttpResponse("Yay! You uploaded the file")
+            return render(request, result_template, {"vcf": vcf})
         else:
-            logger.warning("Something has wailed")
+            logger.warning("Something has failed")
             logger.debug("Form errors: {}", form.errors)
-            return render(request, "upload.html", {"form": form})
+            return render(request, form_template, {"form": form})
 
     else:
-        form = VCFFileForm()
+        form = form_class()
 
-    return render(request, "upload.html", {"form": form})
+    return render(request, form_template, {"form": form})
 
 
 def vcf_files_list(request):
