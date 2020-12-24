@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from loguru import logger
-from pysam.libcbcf import VariantRecord, VariantRecordSample
+from pysam.libcbcf import VariantRecord, VariantRecordSample, VariantFile
 
 from nationality_prediction.predictors import FastNGSAdmixPredictor
 from .vcf_processing import VCFFile, VCFRecord
@@ -50,7 +50,46 @@ class RawVCF(models.Model):
     )
     date_created = models.DateTimeField(auto_now_add=True)
     saved = models.BooleanField(default=False)
+    n_samples = models.IntegerField(blank=True, null=True)
+    n_refs = models.IntegerField(blank=True, null=True)
+    n_alts = models.IntegerField(blank=True, null=True)
+    n_missing_genotypes = models.IntegerField(blank=True, null=True)
     objects = VCFTimeCheckingManager()
+
+    def calculate_statistics(self):
+        """Calculate statistics of VCF file
+
+        The following statistics are calculated
+        1. Number of samples in file
+        2. Number of REF matches
+        3. Number of ALTs
+        4. Number of missing genotypes
+        """
+        logger.info("Trying to read VCF file with pysam")
+        vcf: VariantFile = VariantFile(self.file.path)
+        logger.debug("self.file.path.title: {}", self.file.path.title())
+        logger.debug("dir(self.file.path): {}", dir(self.file.path))
+
+        self.saved = False
+        self.n_refs = 0
+        self.n_missing_genotypes = 0
+        self.n_alts = 0
+        self.n_samples = 0
+        self.n_records = 0
+
+        for i, record in enumerate(vcf.fetch()):
+            for sample in record.samples:
+                indices: Tuple[int] = record.samples[sample].allele_indices  # e.g. (0, 1)
+
+                self.n_refs += indices.count(0)
+                self.n_missing_genotypes += indices.count(None)
+                self.n_alts += 2 - indices.count(0) - indices.count(None)
+
+        if "record" in locals():  # Cycle executed at least once
+            self.n_samples = len(record.samples)
+            self.n_records = i + 1
+
+        self.save()
 
 
 class Allele(models.Model):
