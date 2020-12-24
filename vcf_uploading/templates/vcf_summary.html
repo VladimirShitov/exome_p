@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% load file_extra_filters %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-12">
+            <h1>Statistics of {{ vcf.file.path | suffix }}</h1>
+            <p>Number of samples: <b>{{ vcf.n_samples }}</b></p>
+            <p>Number of reference alleles: <b>{{ vcf.n_refs }}</b></p>
+            <p>Number of alternative alleles: <b>{{ vcf.n_alts }}</b></p>
+            <p>Number of missing haplotypes: <b>{{ vcf.n_alts }}</b></p>
+        </div>
+    </div>
+
+{% endblock %}
