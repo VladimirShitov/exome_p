@@ -21,6 +21,9 @@ class VCFFileForm(ModelForm):
     def save(self, commit=True):
         with transaction.atomic():
             vcf_file: RawVCF = super().save(commit=commit)
+            vcf_file.saved = False  # Mark file as unsaved until user explicitly saves it
+            vcf_file.save()  # Save information, that a file is not saved, LOL
+
             logger.info("Trying to read VCF file with pysam")
             vcf: VariantFile = VariantFile(vcf_file.file.path)
 
@@ -40,7 +43,7 @@ class VCFFileForm(ModelForm):
                             break
                         first_iteration = False
 
-                    save_record_to_db(record=record, samples=samples)
+                    # save_record_to_db(record=record, samples=samples)
 
 
 class SNPSearchForm(forms.Form):
