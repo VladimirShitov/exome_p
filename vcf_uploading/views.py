@@ -5,7 +5,7 @@ from loguru import logger
 
 from .forms import SNPSearchForm, VCFFileForm
 from .models import RawVCF, Sample
-from .types import SamplesSearchResult
+from .types import SamplesSearchResult, SampleStatistics, SamplesStatisticsTable
 from .utils import get_similar_samples_from_snp
 
 
@@ -28,10 +28,17 @@ def vcf_file_upload(
             logger.info("Form is valid, trying to calculate statistics")
             vcf = RawVCF(file=form.cleaned_data["file"])
             vcf.save()
-            vcf.calculate_statistics()
 
-            logger.success("Saved the file, returning success")
-            return render(request, result_template, {"vcf": vcf})
+            samples_statistics_table = SamplesStatisticsTable.from_dict(
+                vcf.calculate_statistics()
+            )
+
+            logger.success("Calculated statistics, returning the page")
+            return render(
+                request,
+                result_template,
+                {"vcf": vcf, "samples_statistics_table": samples_statistics_table}
+            )
         else:
             logger.warning("Something has failed")
             logger.debug("Form errors: {}", form.errors)
