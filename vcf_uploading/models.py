@@ -10,7 +10,7 @@ from loguru import logger
 from pysam.libcbcf import VariantRecord, VariantRecordSample, VariantFile
 
 from nationality_prediction.predictors import FastNGSAdmixPredictor
-from .vcf_processing import VCFFile, VCFRecord
+from vcf_uploading.vcf_processing import VCFFile, VCFRecord
 
 
 def get_deleted_sample():
@@ -64,7 +64,15 @@ class RawVCF(models.Model):
         2. Number of REF matches
         3. Number of ALTs
         4. Number of missing genotypes
+
+        :return samples_statistics: Dict[str, SampleStatistics]. Keys of the dictionary
+          are samples' names. Values are dictionaries with keys:
+          * n_refs: int — number of alleles that are identical to a reference
+          * n_alts: int — number of alleles that are not identical to a reference
+          * n_missing: int — number of alleles with unknown genotype
         """
+        from vcf_uploading.types import SampleStatistics
+
         logger.info("Trying to read VCF file with pysam")
         vcf: VariantFile = VariantFile(self.file.path)
         logger.debug("self.file.path.title: {}", self.file.path.title())
@@ -77,19 +85,36 @@ class RawVCF(models.Model):
         self.n_samples = 0
         self.n_records = 0
 
+        samples_statistics: Dict[str, SampleStatistics] = {}
+
         for i, record in enumerate(vcf.fetch()):
             for sample in record.samples:
                 indices: Tuple[int] = record.samples[sample].allele_indices  # e.g. (0, 1)
 
-                self.n_refs += indices.count(0)
-                self.n_missing_genotypes += indices.count(None)
-                self.n_alts += 2 - indices.count(0) - indices.count(None)
+                n_refs = indices.count(0)
+                n_missing = indices.count(None)
+                n_alts = 2 - n_refs - n_missing
+
+                self.n_refs += n_refs
+                self.n_missing_genotypes += n_missing
+                self.n_alts += n_alts
+
+                if sample in samples_statistics:  # TODO: can we make it a defaultdict?
+                    samples_statistics[sample]["n_refs"] += n_refs
+                    samples_statistics[sample]["n_alts"] += n_alts
+                    samples_statistics[sample]["n_missing"] += n_missing
+                else:
+                    samples_statistics[sample]["n_refs"] = 0
+                    samples_statistics[sample]["n_alts"] = 0
+                    samples_statistics[sample]["n_missing"] = 0
 
         if "record" in locals():  # Cycle executed at least once
             self.n_samples = len(record.samples)
             self.n_records = i + 1
 
         self.save()
+
+        return samples_statistics
 
 
 class Allele(models.Model):
