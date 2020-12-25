@@ -87,7 +87,12 @@ class SamplesStatisticsTable(Table):
         :return SampleStatisticsTable with content from `samples_statistics_dict`
         """
         content = [
-            (sample_name, statistics["n_refs"], statistics["n_alts"], statistics["n_missing"])
+            (
+                sample_name,
+                statistics["n_refs"],
+                statistics["n_alts"],
+                statistics["n_missing"],
+            )
             for sample_name, statistics in samples_statistics_dict.items()
         ]
 

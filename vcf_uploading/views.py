@@ -5,7 +5,7 @@ from loguru import logger
 
 from .forms import SNPSearchForm, VCFFileForm
 from .models import RawVCF, Sample
-from .types import SamplesSearchResult, SampleStatistics, SamplesStatisticsTable
+from .types import SamplesSearchResult, SamplesStatisticsTable, SampleStatistics
 from .utils import get_similar_samples_from_snp
 
 
@@ -14,10 +14,10 @@ def index(request):
 
 
 def vcf_file_upload(
-        request,
-        form_class=VCFFileForm,
-        form_template="upload.html",
-        result_template="vcf_summary.html"
+    request,
+    form_class=VCFFileForm,
+    form_template="upload.html",
+    result_template="vcf_summary.html",
 ):
     if request.method == "POST":
         logger.info("{} received a POST request", vcf_file_upload.__name__)
@@ -37,7 +37,7 @@ def vcf_file_upload(
             return render(
                 request,
                 result_template,
-                {"vcf": vcf, "samples_statistics_table": samples_statistics_table}
+                {"vcf": vcf, "samples_statistics_table": samples_statistics_table},
             )
         else:
             logger.warning("Something has failed")

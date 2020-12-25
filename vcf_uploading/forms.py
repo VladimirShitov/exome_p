@@ -21,7 +21,9 @@ class VCFFileForm(ModelForm):
     def save(self, commit=True):
         with transaction.atomic():
             vcf_file: RawVCF = super().save(commit=commit)
-            vcf_file.saved = False  # Mark file as unsaved until user explicitly saves it
+
+            # Mark file as unsaved until user explicitly saves it
+            vcf_file.saved = False
             vcf_file.save()  # Save information, that a file is not saved, LOL
 
             logger.info("Trying to read VCF file with pysam")

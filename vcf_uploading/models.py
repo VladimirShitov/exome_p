@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from loguru import logger
-from pysam.libcbcf import VariantRecord, VariantRecordSample, VariantFile
+from pysam.libcbcf import VariantFile, VariantRecord, VariantRecordSample
 
 from nationality_prediction.predictors import FastNGSAdmixPredictor
 from vcf_uploading.vcf_processing import VCFFile, VCFRecord
@@ -29,14 +29,18 @@ class RawVCF(models.Model):
             """
             keep_files_after = timezone.now() - self._TIME_THRESHOLD
 
-            not_saved_vcfs = super().get_queryset().filter(
-                date_created__lt=keep_files_after, saved=False
+            not_saved_vcfs = (
+                super()
+                .get_queryset()
+                .filter(date_created__lt=keep_files_after, saved=False)
             )
             deletion_log = not_saved_vcfs.delete()
             logger.info("Deleted not saved VCF: {}", deletion_log)
 
-            return super().get_queryset().filter(
-                Q(saved=True) | Q(date_created__gte=keep_files_after)
+            return (
+                super()
+                .get_queryset()
+                .filter(Q(saved=True) | Q(date_created__gte=keep_files_after))
             )
 
     from .validators import check_vcf_format
@@ -89,7 +93,9 @@ class RawVCF(models.Model):
 
         for i, record in enumerate(vcf.fetch()):
             for sample in record.samples:
-                indices: Tuple[int] = record.samples[sample].allele_indices  # e.g. (0, 1)
+                indices: Tuple[int] = record.samples[
+                    sample
+                ].allele_indices  # e.g. (0, 1)
 
                 n_refs = indices.count(0)
                 n_missing = indices.count(None)
