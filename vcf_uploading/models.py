@@ -104,6 +104,7 @@ class RawVCF(models.Model):
                     samples_statistics[sample]["n_alts"] += n_alts
                     samples_statistics[sample]["n_missing"] += n_missing
                 else:
+                    samples_statistics[sample] = {}
                     samples_statistics[sample]["n_refs"] = 0
                     samples_statistics[sample]["n_alts"] = 0
                     samples_statistics[sample]["n_missing"] = 0
