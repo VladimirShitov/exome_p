@@ -61,3 +61,10 @@ class SNPSearchResult:
 class SamplesSearchResult:
     samples: SamplesSimilarityTable
     snp_queries: List[SNPSearchResult]
+
+
+class SampleStatistics(TypedDict):
+    n_refs: int
+    n_alts: int
+    n_missing: int
+    has_name_collision: bool
