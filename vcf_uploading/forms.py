@@ -1,15 +1,8 @@
-from typing import Optional
-
 from django import forms
-from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
-from loguru import logger
-from pysam import VariantFile
 
 from .models import Allele, Chromosome, RawVCF
-from .types import SamplesDict
-from .utils import are_samples_empty, parse_samples, save_record_to_db
 
 
 class VCFFileForm(ModelForm):
@@ -19,33 +12,12 @@ class VCFFileForm(ModelForm):
         labels = {"file": _("File with genetic variants (e.g. VCF file)")}
 
     def save(self, commit=True):
-        with transaction.atomic():
-            vcf_file: RawVCF = super().save(commit=commit)
+        vcf_file: RawVCF = super().save(commit=commit)
 
-            # Mark file as unsaved until user explicitly saves it
-            vcf_file.saved = False
-            vcf_file.save()  # Save information, that a file is not saved, LOL
+        # Mark file as unsaved until user explicitly saves it
+        vcf_file.saved = False
+        vcf_file.save()  # Save information, that a file is not saved, LOL
 
-            logger.info("Trying to read VCF file with pysam")
-            vcf: VariantFile = VariantFile(vcf_file.file.path)
-
-            with transaction.atomic():
-                first_iteration = True
-
-                for i, record in enumerate(vcf.fetch()):
-                    if i % 100 == 1:
-                        logger.debug("{} records processed", i)
-
-                    if first_iteration:
-                        if are_samples_empty(record):
-                            break
-                        samples: Optional[SamplesDict] = parse_samples(record, vcf_file)
-                        if not samples:
-                            logger.info("No new samples detected. Breaking")
-                            break
-                        first_iteration = False
-
-                    # save_record_to_db(record=record, samples=samples)
 
 
 class SNPSearchForm(forms.Form):

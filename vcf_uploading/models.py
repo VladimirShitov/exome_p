@@ -1,8 +1,8 @@
 from datetime import timedelta
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from django.core.validators import FileExtensionValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -122,6 +122,35 @@ class RawVCF(models.Model):
         self.save()
 
         return samples_statistics
+
+    def save_samples_to_db(self):
+        from vcf_uploading.types import SamplesDict
+        from vcf_uploading.utils import are_samples_empty, parse_samples, save_record_to_db
+
+        with transaction.atomic():
+            self.saved = True
+            self.save()
+
+            logger.info("Trying to read VCF file with pysam")
+            vcf: VariantFile = VariantFile(self.file.path)
+
+            with transaction.atomic():
+                first_iteration = True
+
+                for i, record in enumerate(vcf.fetch()):
+                    if i % 100 == 1:
+                        logger.debug("{} records processed", i)
+
+                    if first_iteration:
+                        if are_samples_empty(record):
+                            break
+                        samples: Optional[SamplesDict] = parse_samples(record, self)
+                        if not samples:
+                            logger.info("No new samples detected. Breaking")
+                            break
+                        first_iteration = False
+
+                    save_record_to_db(record=record, samples=samples)
 
 
 class Allele(models.Model):
