@@ -2,7 +2,6 @@ from collections import defaultdict
 from operator import itemgetter
 from typing import Dict, List, Optional, Tuple
 
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import QueryDict
 from loguru import logger
 from pysam import VariantRecord
