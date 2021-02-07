@@ -39,4 +39,12 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-12">
+            <a href="{% url 'save_vcf' vcf.pk %}" type="button" class="btn btn-success">Save file to the database</a>
+            <a href="{% url 'predict_nationality_from_vcf' vcf.pk %}" type="button" class="btn btn-primary">Predict nationality</a>
+            <!--<a href="{% url 'upload' %}" type="button" class="btn btn-danger">Delete file</a>-->
+        </div>
+    </div>
+
 {% endblock %}
