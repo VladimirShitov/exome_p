@@ -1,4 +1,5 @@
 from datetime import timedelta
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from django.core.validators import FileExtensionValidator
@@ -151,6 +152,13 @@ class RawVCF(models.Model):
                         first_iteration = False
 
                     save_record_to_db(record=record, samples=samples)
+
+    def predict_nationality(self):
+        logger.info("Predicting nationality for RawVCF")
+        vcf_file_path = Path(self.file.path)
+
+        predictor = FastNGSAdmixPredictor(vcf_file_path)
+        return predictor.predict()
 
 
 class Allele(models.Model):
