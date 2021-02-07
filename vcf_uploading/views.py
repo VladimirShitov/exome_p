@@ -1,6 +1,6 @@
 from django.forms import formset_factory
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from loguru import logger
 
 from .forms import SNPSearchForm, VCFFileForm
@@ -94,3 +94,22 @@ def snp_search_form(
         formset = formset_class()
 
     return render(request, form_template, {"formset": formset})
+
+
+def save_vcf(request, file_id: int):
+    pass
+
+
+def predict_nationality_from_vcf(
+        request,
+        file_id: int,
+        result_template="nationality_prediction_result.html"
+):
+    vcf: RawVCF = get_object_or_404(RawVCF, pk=file_id)
+    nationalities_prediction = vcf.predict_nationality()
+
+    return render(
+        request,
+        result_template,
+        {"predicted_nationalities": nationalities_prediction}
+    )
