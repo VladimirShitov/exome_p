@@ -44,6 +44,13 @@ class FastNGSAdmixPredictor:
                     f.write(self.vcf.read().decode())
                     predicted_nationalities = self.run_command_line_tools(tmp_dir_path)
 
+            elif isinstance(self.vcf, Path):
+                with open(vcf_file_path, "w") as temp_vcf:
+                    with open(self.vcf) as vcf:
+                        # TODO: make it smarter. Now we write and read the same file
+                        temp_vcf.write(vcf.read())
+                        predicted_nationalities = self.run_command_line_tools(tmp_dir_path)
+
             else:
                 raise ValueError(
                     _(f"Type {type(self.vcf)} is not supported for VCF files")
