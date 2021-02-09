@@ -2,7 +2,7 @@ from typing import Dict
 
 from django.forms import formset_factory
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from loguru import logger
 
 from .forms import SNPSearchForm, VCFFileForm
@@ -18,8 +18,7 @@ def index(request):
 def vcf_file_upload(
     request,
     form_class=VCFFileForm,
-    form_template="upload.html",
-    result_template="vcf_summary.html",
+    form_template="upload.html"
 ):
     if request.method == "POST":
         logger.info("{} received a POST request", vcf_file_upload.__name__)
@@ -29,18 +28,10 @@ def vcf_file_upload(
         if form.is_valid():
             logger.info("Form is valid, trying to calculate statistics")
             vcf = RawVCF(file=form.cleaned_data["file"])
-            vcf.save()
+            vcf.saved = False
+            vcf.save()  # Save information, that a file is not saved, LOL
 
-            samples_statistics_table = SamplesStatisticsTable.from_dict(
-                vcf.calculate_statistics()
-            )
-
-            logger.success("Calculated statistics, returning the page")
-            return render(
-                request,
-                result_template,
-                {"vcf": vcf, "samples_statistics_table": samples_statistics_table},
-            )
+            return redirect("vcf_view", file_id=vcf.pk)
         else:
             logger.warning("Something has failed")
             logger.debug("Form errors: {}", form.errors)
@@ -50,6 +41,27 @@ def vcf_file_upload(
         form = form_class()
 
     return render(request, form_template, {"form": form})
+
+
+def vcf_view(
+        request,
+        file_id: int,
+        result_template="vcf_summary.html"
+):
+    logger.info("VCF view received a request")
+
+    vcf: RawVCF = get_object_or_404(RawVCF, pk=file_id)
+    samples_statistics_table = SamplesStatisticsTable.from_dict(
+        vcf.calculate_statistics()
+    )
+    logger.debug("VCF is saved? {}", vcf.saved)
+
+    logger.success("Calculated statistics, returning the page")
+    return render(
+        request,
+        result_template,
+        {"vcf": vcf, "samples_statistics_table": samples_statistics_table},
+    )
 
 
 def vcf_files_list(request):
@@ -101,7 +113,7 @@ def snp_search_form(
 def save_vcf(request, file_id: int):
     vcf: RawVCF = get_object_or_404(RawVCF, pk=file_id)
     vcf.save_samples_to_db()
-    return HttpResponse("Yay, ypu saved the file")
+    return redirect("vcf_view", file_id=vcf.pk)
 
 
 def predict_nationality_from_vcf(
