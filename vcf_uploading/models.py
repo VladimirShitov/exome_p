@@ -153,12 +153,33 @@ class RawVCF(models.Model):
 
                     save_record_to_db(record=record, samples=samples)
 
-    def predict_nationality(self):
+    def predict_nationality(self) -> Dict[str, Dict[str, float]]:
+        """Predict nationalities for each sample in `self.file`
+
+        :return samples_nationalities: Dict[str, Dict[str, float]] - a dictionary,
+            where the keys are the samples, and the values are the prediction of
+            nationalities. In the predictions, keys are nationalities, and values
+            are their probabilities
+        """
         logger.info("Predicting nationality for RawVCF")
         vcf_file_path = Path(self.file.path)
 
-        predictor = FastNGSAdmixPredictor(vcf_file_path)
-        return predictor.predict()
+        pysam_vcf: VariantFile = VariantFile(vcf_file_path)
+        record = next(pysam_vcf.fetch())
+
+        predictions = {}
+
+        for sample in record.samples.keys():
+            logger.info("Predicting nationality for sample {}", sample)
+            sample_vcf: VariantFile = VariantFile(vcf_file_path)
+            sample_vcf.subset_samples([sample])
+
+            predictor = FastNGSAdmixPredictor(sample_vcf)
+            predictions[sample] = predictor.predict()
+
+        logger.info("Returning nationality predictions")
+        logger.debug("Predictions: {}", predictions)
+        return predictions
 
 
 class Allele(models.Model):
