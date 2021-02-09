@@ -80,10 +80,7 @@ class RawVCF(models.Model):
 
         logger.info("Trying to read VCF file with pysam")
         vcf: VariantFile = VariantFile(self.file.path)
-        logger.debug("self.file.path.title: {}", self.file.path.title())
-        logger.debug("dir(self.file.path): {}", dir(self.file.path))
 
-        self.saved = False
         self.n_refs = 0
         self.n_missing_genotypes = 0
         self.n_alts = 0
@@ -152,6 +149,9 @@ class RawVCF(models.Model):
                         first_iteration = False
 
                     save_record_to_db(record=record, samples=samples)
+
+                logger.info("File is saved to the database")
+                logger.debug("File.saved: {}", self.saved)
 
     def predict_nationality(self) -> Dict[str, Dict[str, float]]:
         """Predict nationalities for each sample in `self.file`
