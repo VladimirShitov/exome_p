@@ -97,7 +97,9 @@ def snp_search_form(
 
 
 def save_vcf(request, file_id: int):
-    pass
+    vcf: RawVCF = get_object_or_404(RawVCF, pk=file_id)
+    vcf.save_samples_to_db()
+    return HttpResponse("Yay, ypu saved the file")
 
 
 def predict_nationality_from_vcf(
