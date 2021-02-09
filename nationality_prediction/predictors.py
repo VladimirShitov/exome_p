@@ -6,6 +6,7 @@ from django.contrib.staticfiles import finders
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils.translation import gettext_lazy as _
 from loguru import logger
+from pysam import VariantFile
 
 from nationality_prediction.command_line_tools import run_fastngsadmix, run_plink
 from nationality_prediction.constants import FAST_NGS_ADMIX_OUTPUT, VCF_FILENAME
@@ -16,7 +17,7 @@ class FastNGSAdmixPredictor:
     number_of_individuals_file = finders.find("nInd_humanOrigins_7worldPops.txt")
     reference_panel_file = finders.find("refPanel_humanOrigins_7worldPops.txt")
 
-    def __init__(self, vcf: Union[VCFFile, InMemoryUploadedFile]):
+    def __init__(self, vcf: Union[VCFFile, InMemoryUploadedFile, VariantFile]):
         self.vcf = vcf
 
     def predict(self) -> Dict[str, float]:
@@ -36,20 +37,25 @@ class FastNGSAdmixPredictor:
 
             logger.info("Saving VCF")
             if isinstance(self.vcf, VCFFile):
+                logger.info("Received VCFFile")
                 self.vcf.save(vcf_file_path)
                 predicted_nationalities = self.run_command_line_tools(tmp_dir_path)
 
             elif isinstance(self.vcf, InMemoryUploadedFile):
+                logger.info("Received InMemoryUploadedFile")
                 with open(vcf_file_path, "w") as f:
                     f.write(self.vcf.read().decode())
                     predicted_nationalities = self.run_command_line_tools(tmp_dir_path)
 
-            elif isinstance(self.vcf, Path):
+            elif isinstance(self.vcf, VariantFile):
+                logger.info("Received VariantFile")
                 with open(vcf_file_path, "w") as temp_vcf:
-                    with open(self.vcf) as vcf:
-                        # TODO: make it smarter. Now we write and read the same file
-                        temp_vcf.write(vcf.read())
-                        predicted_nationalities = self.run_command_line_tools(tmp_dir_path)
+                    temp_vcf.write(str(self.vcf.header))
+                    for record in self.vcf.fetch():
+                        temp_vcf.write(str(record))
+
+                    predicted_nationalities = self.run_command_line_tools(tmp_dir_path)
+                    logger.debug("Last record: {}", str(record))
 
             else:
                 raise ValueError(
@@ -92,9 +98,20 @@ class FastNGSAdmixPredictor:
         """
         logger.info("Reading fastNGSadmix output")
 
-        with open(filepath) as f:
-            predicted_nationalities = f.read()
-            logger.debug("Predicted nationalities:\n{}", predicted_nationalities)
+        try:
+            with open(filepath) as f:
+                predicted_nationalities = f.read()
+                logger.debug("Predicted nationalities:\n{}", predicted_nationalities)
+        except FileNotFoundError:
+            return {
+                "French": 0,
+                "Han": 0,
+                "Chukchi": 0,
+                "Karitiana": 0,
+                "Papuan": 0,
+                "Sindhi": 0,
+                "Yoruba": 0
+            }
 
         file_content = predicted_nationalities.strip().split("\n")
         nationalities = file_content[0].strip().split()
