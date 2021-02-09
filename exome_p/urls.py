@@ -24,7 +24,8 @@ urlpatterns = [
     path("", vcf_uploading.views.index, name="index"),
     path("file/vcf/", vcf_uploading.views.vcf_file_upload, name="upload"),
     path("file/vcf/list", vcf_uploading.views.vcf_files_list, name="vcf_list"),
-    path("file/vcf/<int:file_id>", vcf_uploading.views.vcf_file_download, name="vcf_file"),
+    path("file/vcf/<int:file_id>", vcf_uploading.views.vcf_view, name="vcf_view"),
+    path("file/vcf/<int:file_id>/download", vcf_uploading.views.vcf_file_download, name="vcf_file"),
     path("file/vcf/<int:file_id>/save", vcf_uploading.views.save_vcf, name="save_vcf"),
     path(
         "file/vcf/<int:file_id>/nationality",
