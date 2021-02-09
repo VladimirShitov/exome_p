@@ -3,6 +3,15 @@
 {% load file_extra_filters %}
 
 {% block content %}
+    {% if vcf.saved %}
+        <div class="alert alert-success" role="alert">
+          File is saved to the database
+        </div>
+    {% else %}
+        <div class="alert alert-danger" role="alert">
+            File is <b>not saved</b> to the database yet!
+        </div>
+    {% endif %}
 
     <div class="row">
         <div class="col-12">
