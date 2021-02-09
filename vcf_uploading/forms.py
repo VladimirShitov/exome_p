@@ -11,14 +11,6 @@ class VCFFileForm(ModelForm):
         fields = ["file"]
         labels = {"file": _("File with genetic variants (e.g. VCF file)")}
 
-    def save(self, commit=True):
-        vcf_file: RawVCF = super().save(commit=commit)
-
-        # Mark file as unsaved until user explicitly saves it
-        vcf_file.saved = False
-        vcf_file.save()  # Save information, that a file is not saved, LOL
-
-
 
 class SNPSearchForm(forms.Form):
     chromosome = forms.ModelChoiceField(
