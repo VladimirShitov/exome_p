@@ -1,3 +1,5 @@
+from typing import Dict
+
 from django.forms import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -108,10 +110,10 @@ def predict_nationality_from_vcf(
         result_template="nationality_prediction_result.html"
 ):
     vcf: RawVCF = get_object_or_404(RawVCF, pk=file_id)
-    nationalities_prediction = vcf.predict_nationality()
+    nationalities_prediction: Dict[str, Dict[str, float]] = vcf.predict_nationality()
 
     return render(
         request,
         result_template,
-        {"predicted_nationalities": nationalities_prediction}
+        {"predicted_nationalities": nationalities_prediction, "multiple_samples": True}
     )
