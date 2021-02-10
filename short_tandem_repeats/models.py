@@ -5,7 +5,7 @@ from django.db import models
 class STRFile(models.Model):
     file = models.FileField(
         upload_to="raw_data/str/",
-        validators=FileExtensionValidator(allowed_extensions=["xlsx"])
+        validators=[FileExtensionValidator(allowed_extensions=["xlsx"])]
     )
 
 
