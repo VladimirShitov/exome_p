@@ -153,6 +153,15 @@ class RawVCF(models.Model):
                 logger.info("File is saved to the database")
                 logger.debug("File.saved: {}", self.saved)
 
+    def get_samples(self) -> List[str]:
+        vcf_file_path = Path(self.file.path)
+
+        pysam_vcf: VariantFile = VariantFile(vcf_file_path)
+        record = next(pysam_vcf.fetch())
+        samples: List[str] = list(record.keys())
+
+        return samples
+
     def predict_nationality(self) -> Dict[str, Dict[str, float]]:
         """Predict nationalities for each sample in `self.file`
 
@@ -162,10 +171,7 @@ class RawVCF(models.Model):
             are their probabilities
         """
         logger.info("Predicting nationality for RawVCF")
-        vcf_file_path = Path(self.file.path)
 
-        pysam_vcf: VariantFile = VariantFile(vcf_file_path)
-        record = next(pysam_vcf.fetch())
 
         predictions = {}
 
