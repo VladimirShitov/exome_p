@@ -61,3 +61,39 @@ class SNPSearchResult:
 class SamplesSearchResult:
     samples: SamplesSimilarityTable
     snp_queries: List[SNPSearchResult]
+
+
+class SampleStatistics(TypedDict):
+    n_refs: int
+    n_alts: int
+    n_missing: int
+    has_name_collision: bool
+
+
+class SamplesStatisticsTable(Table):
+    header = cast(Tuple[str], (_("Sample"), _("#REF"), _("#ALT"), _("#Missing")))
+
+    def __init__(self, content: List[tuple]):
+        super().__init__(header=self.header, content=content)
+
+    @classmethod
+    def from_dict(cls, samples_statistics_dict: Dict[str, SampleStatistics]):
+        """Convert dictionary with samples' statistics into Table's class format
+
+        :param samples_statistics_dict: Dict[str, SampleStatistics]
+            Dictionary, where keys are samples names and values are dictionaries
+            described by SampleStatistics class
+
+        :return SampleStatisticsTable with content from `samples_statistics_dict`
+        """
+        content = [
+            (
+                sample_name,
+                statistics["n_refs"],
+                statistics["n_alts"],
+                statistics["n_missing"],
+            )
+            for sample_name, statistics in samples_statistics_dict.items()
+        ]
+
+        return cls(content)

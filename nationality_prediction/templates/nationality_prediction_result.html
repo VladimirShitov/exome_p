@@ -7,20 +7,40 @@
             {% if not predicted_nationalities %}
                 <div class="alert alert-warning"><p>Couldn't predict nationality</p></div>
             {% else %}
-                <table class="table">
-                    <thead>
-                        <th scope="col">Nationality</th>
-                        <th scope="col">Probability</th>
-                    </thead>
-                    <tbody>
-                        {% for nationality, score in predicted_nationalities.items %}
-                            <tr>
-                                <td>{{ nationality }}</td>
-                                <td>{{ score }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                {% if multiple_samples %}
+                    {% for sample, predictions in predicted_nationalities.items %}
+                        <h3>Sample {{ sample }}</h3>
+                        <table class="table">
+                            <thead>
+                                <th scope="col">Nationality</th>
+                                <th scope="col">Probability</th>
+                            </thead>
+                            <tbody>
+                                {% for nationality, score in predictions.items %}
+                                    <tr>
+                                        <td>{{ nationality }}</td>
+                                        <td>{{ score }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endfor %}
+                {% else %}
+                    <table class="table">
+                        <thead>
+                            <th scope="col">Nationality</th>
+                            <th scope="col">Probability</th>
+                        </thead>
+                        <tbody>
+                            {% for nationality, score in predicted_nationalities.items %}
+                                <tr>
+                                    <td>{{ nationality }}</td>
+                                    <td>{{ score }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
             {% endif %}
         </div>
     </div>

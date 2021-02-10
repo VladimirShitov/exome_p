@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% load file_extra_filters %}
+
+{% block content %}
+    {% if vcf.saved %}
+        <div class="alert alert-success" role="alert">
+          File is saved to the database
+        </div>
+    {% else %}
+        <div class="alert alert-danger" role="alert">
+            File is <b>not saved</b> to the database yet!
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-12">
+            <h1>Statistics of {{ vcf.file.path | suffix }}</h1>
+            <p>Number of samples: <b>{{ vcf.n_samples }}</b></p>
+            <p>Number of variants: <b>{{ vcf.n_refs }}</b></p>
+            <p>Number of alternative alleles: <b>{{ vcf.n_alts }}</b></p>
+            <p>Number of missing haplotypes: <b>{{ vcf.n_missing_genotypes }}</b></p>
+        </div>
+    </div>
+
+    <div class="row">
+            <div class="col-12">
+            {% if not samples_statistics_table %}
+                <div class="alert alert-warning"><p>No samples found</p></div>
+            {% else %}
+                <table class="table">
+                    <thead>
+                        {% for title in samples_statistics_table.header %}
+                            <th scope="col">{{ title }}</th>
+                        {% endfor %}
+                    </thead>
+                    <tbody>
+                        {% for row in samples_statistics_table.content %}
+                            <tr>
+                            {% for item in row %}
+                                <td>{{ item }}</td>
+                            {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <a href="{% url 'save_vcf' vcf.pk %}" type="button" class="btn btn-success">Save file to the database</a>
+            <a href="{% url 'predict_nationality_from_vcf' vcf.pk %}" type="button" class="btn btn-primary">Predict nationality</a>
+            <a href="{% url 'find_similar_samples_in_db' vcf.pk %}" type="button" class="btn btn-info">Find similar samples in the DB</a>
+            <!--<a href="{% url 'upload' %}" type="button" class="btn btn-danger">Delete file</a>-->
+        </div>
+    </div>
+
+{% endblock %}

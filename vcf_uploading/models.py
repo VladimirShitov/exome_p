@@ -1,14 +1,18 @@
-from typing import Dict, List, Tuple
+from collections import defaultdict
+from datetime import timedelta
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 from django.core.validators import FileExtensionValidator
-from django.db import models
+from django.db import models, transaction
+from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from loguru import logger
-from pysam.libcbcf import VariantRecord, VariantRecordSample
+from pysam.libcbcf import VariantFile, VariantRecord, VariantRecordSample
 
 from nationality_prediction.predictors import FastNGSAdmixPredictor
-
-from .vcf_processing import VCFFile, VCFRecord
+from vcf_uploading.vcf_processing import VCFFile, VCFRecord
 
 
 def get_deleted_sample():
@@ -16,6 +20,31 @@ def get_deleted_sample():
 
 
 class RawVCF(models.Model):
+    class VCFTimeCheckingManager(models.Manager):
+        _TIME_THRESHOLD = timedelta(minutes=45)
+
+        def get_queryset(self):
+            """Return only files that were uploaded recently or are already saved
+
+            Files that were uploaded earlier that current time - `self._TIME_THRESHOLD`
+            are deleted in this query
+            """
+            keep_files_after = timezone.now() - self._TIME_THRESHOLD
+
+            not_saved_vcfs = (
+                super()
+                .get_queryset()
+                .filter(date_created__lt=keep_files_after, saved=False)
+            )
+            deletion_log = not_saved_vcfs.delete()
+            logger.info("Deleted not saved VCF: {}", deletion_log)
+
+            return (
+                super()
+                .get_queryset()
+                .filter(Q(saved=True) | Q(date_created__gte=keep_files_after))
+            )
+
     from .validators import check_vcf_format
 
     file = models.FileField(
@@ -25,6 +54,174 @@ class RawVCF(models.Model):
             FileExtensionValidator(allowed_extensions=["vcf", "vcf.gz", "bcf", "gz"]),
         ],
     )
+    date_created = models.DateTimeField(auto_now_add=True)
+    saved = models.BooleanField(default=False)
+    n_samples = models.IntegerField(blank=True, null=True)
+    n_refs = models.IntegerField(blank=True, null=True)
+    n_alts = models.IntegerField(blank=True, null=True)
+    n_missing_genotypes = models.IntegerField(blank=True, null=True)
+    objects = VCFTimeCheckingManager()
+
+    def calculate_statistics(self):
+        """Calculate statistics of VCF file
+
+        The following statistics are calculated
+        1. Number of samples in file
+        2. Number of REF matches
+        3. Number of ALTs
+        4. Number of missing genotypes
+
+        :return samples_statistics: Dict[str, SampleStatistics]. Keys of the dictionary
+          are samples' names. Values are dictionaries with keys:
+          * n_refs: int — number of alleles that are identical to a reference
+          * n_alts: int — number of alleles that are not identical to a reference
+          * n_missing: int — number of alleles with unknown genotype
+        """
+        from vcf_uploading.types import SampleStatistics
+
+        logger.info("Trying to read VCF file with pysam")
+        vcf: VariantFile = VariantFile(self.file.path)
+
+        self.n_refs = 0
+        self.n_missing_genotypes = 0
+        self.n_alts = 0
+        self.n_samples = 0
+        self.n_records = 0
+
+        samples_statistics: Dict[str, SampleStatistics] = {}
+
+        for i, record in enumerate(vcf.fetch()):
+            for sample in record.samples:
+                indices: Tuple[int] = record.samples[
+                    sample
+                ].allele_indices  # e.g. (0, 1)
+
+                n_refs = indices.count(0)
+                n_missing = indices.count(None)
+                n_alts = 2 - n_refs - n_missing
+
+                self.n_refs += n_refs
+                self.n_missing_genotypes += n_missing
+                self.n_alts += n_alts
+
+                if sample in samples_statistics:  # TODO: can we make it a defaultdict?
+                    samples_statistics[sample]["n_refs"] += n_refs
+                    samples_statistics[sample]["n_alts"] += n_alts
+                    samples_statistics[sample]["n_missing"] += n_missing
+                else:
+                    samples_statistics[sample] = {}
+                    samples_statistics[sample]["n_refs"] = 0
+                    samples_statistics[sample]["n_alts"] = 0
+                    samples_statistics[sample]["n_missing"] = 0
+
+        if "record" in locals():  # Cycle executed at least once
+            self.n_samples = len(record.samples)
+            self.n_records = i + 1
+
+        self.save()
+
+        return samples_statistics
+
+    def save_samples_to_db(self):
+        from vcf_uploading.types import SamplesDict
+        from vcf_uploading.utils import are_samples_empty, parse_samples, save_record_to_db
+
+        with transaction.atomic():
+            self.saved = True
+            self.save()
+
+            logger.info("Trying to read VCF file with pysam")
+            vcf: VariantFile = VariantFile(self.file.path)
+
+            with transaction.atomic():
+                first_iteration = True
+
+                for i, record in enumerate(vcf.fetch()):
+                    if i % 100 == 1:
+                        logger.debug("{} records processed", i)
+
+                    if first_iteration:
+                        if are_samples_empty(record):
+                            break
+                        samples: Optional[SamplesDict] = parse_samples(record, self)
+                        if not samples:
+                            logger.info("No new samples detected. Breaking")
+                            break
+                        first_iteration = False
+
+                    save_record_to_db(record=record, samples=samples)
+
+                logger.info("File is saved to the database")
+                logger.debug("File.saved: {}", self.saved)
+
+    def get_samples(self) -> List[str]:
+        vcf_file_path = Path(self.file.path)
+
+        pysam_vcf: VariantFile = VariantFile(vcf_file_path)
+        record = next(pysam_vcf.fetch())
+        samples: List[str] = list(record.samples.keys())
+
+        return samples
+
+    def predict_nationality(self) -> Dict[str, Dict[str, float]]:
+        """Predict nationalities for each sample in `self.file`
+
+        :return samples_nationalities: Dict[str, Dict[str, float]] - a dictionary,
+            where the keys are the samples, and the values are the prediction of
+            nationalities. In the predictions, keys are nationalities, and values
+            are their probabilities
+        """
+        logger.info("Predicting nationality for RawVCF")
+
+        predictions = {}
+
+        for sample in self.get_samples():
+            logger.info("Predicting nationality for sample {}", sample)
+            sample_vcf: VariantFile = VariantFile(self.file.path)
+            sample_vcf.subset_samples([sample])
+
+            predictor = FastNGSAdmixPredictor(sample_vcf)
+            predictions[sample] = predictor.predict()
+
+        logger.info("Returning nationality predictions")
+        logger.debug("Predictions: {}", predictions)
+        return predictions
+
+    def find_similar_samples_in_db(self):
+        from .utils import get_average_similarities
+        logger.info("Trying to find similar samples in the DB for file {}", self.file.name)
+        similar_samples: Dict[str, Dict[str, List[float]]] = {}
+
+        samples = self.get_samples()
+
+        for sample in samples:
+            similar_samples[sample] = defaultdict(list)
+
+        vcf: VariantFile = VariantFile(self.file.path)
+        # TODO: this can be done MUCH faster
+        # We can check for a few tens of SNPs from file. If a database
+        # sample has different genotypes in most of them, we can exclude it
+        # from the further checks
+        for i, record in enumerate(vcf):
+            if i % 100 == 1:
+                logger.info("{} records processed", i)
+            snp = SNP.from_record(record)
+
+            for sample_name, sample in record.samples.items():
+                if snp is None:
+                    for db_sample in Sample.objects.all():
+                        similar_samples[sample_name][db_sample.cypher].append(0)
+                else:
+                    if all(allele is None for allele in sample.alleles):
+                        continue
+                    db_samples_similarity = SNP.calculate_similarity_to_each_sample(
+                        snp, sample.alleles
+                    )
+                    for db_sample, similarity in db_samples_similarity.items():
+                        similar_samples[sample_name][db_sample].append(similarity)
+
+        similarities: Dict[str, Dict[str, float]] = get_average_similarities(similar_samples)
+        return similarities
 
 
 class Allele(models.Model):
@@ -250,6 +447,46 @@ class SNP(models.Model):
         samples = [v.sample for v in variants_with_snp]
         return samples
 
+    @classmethod
+    def from_record(cls, record: VariantRecord) -> Optional["SNP"]:
+        position = record.pos
+        chromosome = Chromosome.from_record(record)
+        ref_allele = Allele.ref_from_record(record)
+        alt_allele = Allele.alt_from_record(record)
+        try:
+            return SNP.objects.get(
+                position=position,
+                chromosome=chromosome,
+                reference_allele=ref_allele,
+                alternative_allele=alt_allele
+            )
+        except SNP.DoesNotExist:
+            return None
+
+    def calculate_similarity_to_each_sample(self, alleles: Tuple[str]):
+        from .utils import get_genotype
+        variants_with_snp = Variant.objects.filter(snp=self).select_related("sample")
+        all_samples = {sample.cypher for sample in Sample.objects.all()}
+        checked_samples = set()
+
+        similarities: Dict[str, float] = {}
+
+        for variant in variants_with_snp:
+            sample = variant.sample.cypher
+            if all(allele is None for allele in alleles):
+                similarity = 0
+            else:
+                genotype = get_genotype(*alleles)
+                similarity = variant.calculate_similarity(genotype)
+
+            similarities[sample] = similarity
+            checked_samples.add(sample)
+
+        for sample_without_variant in all_samples - checked_samples:
+            similarities[sample_without_variant] = 0
+
+        return similarities
+
 
 class Variant(models.Model):
     from .metrics import identity_percentage
@@ -279,7 +516,7 @@ class Variant(models.Model):
     def calculate_similarity(
         self, alleles: Tuple[Allele], metric=identity_percentage
     ) -> float:
-        variant_alleles = tuple(self.alleles.all())
+        variant_alleles = self.alleles.all()
 
         if all(allele is None for allele in variant_alleles):
             return 0
