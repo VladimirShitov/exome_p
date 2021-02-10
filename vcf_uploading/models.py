@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -158,7 +159,7 @@ class RawVCF(models.Model):
 
         pysam_vcf: VariantFile = VariantFile(vcf_file_path)
         record = next(pysam_vcf.fetch())
-        samples: List[str] = list(record.keys())
+        samples: List[str] = list(record.samples.keys())
 
         return samples
 
@@ -176,7 +177,7 @@ class RawVCF(models.Model):
 
         for sample in self.get_samples():
             logger.info("Predicting nationality for sample {}", sample)
-            sample_vcf: VariantFile = VariantFile(vcf_file_path)
+            sample_vcf: VariantFile = VariantFile(self.file.path)
             sample_vcf.subset_samples([sample])
 
             predictor = FastNGSAdmixPredictor(sample_vcf)
@@ -187,7 +188,40 @@ class RawVCF(models.Model):
         return predictions
 
     def find_similar_samples_in_db(self):
-        return {"10_1": 1., "9_2": 0.5}
+        from .utils import get_average_similarities
+        logger.info("Trying to find similar samples in the DB for file {}", self.file.name)
+        similar_samples: Dict[str, Dict[str, List[float]]] = {}
+
+        samples = self.get_samples()
+
+        for sample in samples:
+            similar_samples[sample] = defaultdict(list)
+
+        vcf: VariantFile = VariantFile(self.file.path)
+        # TODO: this can be done MUCH faster
+        # We can check for a few tens of SNPs from file. If a database
+        # sample has different genotypes in most of them, we can exclude it
+        # from the further checks
+        for i, record in enumerate(vcf):
+            if i % 100 == 1:
+                logger.info("{} records processed", i)
+            snp = SNP.from_record(record)
+
+            for sample_name, sample in record.samples.items():
+                if snp is None:
+                    for db_sample in Sample.objects.all():
+                        similar_samples[sample_name][db_sample.cypher].append(0)
+                else:
+                    if all(allele is None for allele in sample.alleles):
+                        continue
+                    db_samples_similarity = SNP.calculate_similarity_to_each_sample(
+                        snp, sample.alleles
+                    )
+                    for db_sample, similarity in db_samples_similarity.items():
+                        similar_samples[sample_name][db_sample].append(similarity)
+
+        similarities: Dict[str, Dict[str, float]] = get_average_similarities(similar_samples)
+        return similarities
 
 
 class Allele(models.Model):
@@ -413,6 +447,46 @@ class SNP(models.Model):
         samples = [v.sample for v in variants_with_snp]
         return samples
 
+    @classmethod
+    def from_record(cls, record: VariantRecord) -> Optional["SNP"]:
+        position = record.pos
+        chromosome = Chromosome.from_record(record)
+        ref_allele = Allele.ref_from_record(record)
+        alt_allele = Allele.alt_from_record(record)
+        try:
+            return SNP.objects.get(
+                position=position,
+                chromosome=chromosome,
+                reference_allele=ref_allele,
+                alternative_allele=alt_allele
+            )
+        except SNP.DoesNotExist:
+            return None
+
+    def calculate_similarity_to_each_sample(self, alleles: Tuple[str]):
+        from .utils import get_genotype
+        variants_with_snp = Variant.objects.filter(snp=self).select_related("sample")
+        all_samples = {sample.cypher for sample in Sample.objects.all()}
+        checked_samples = set()
+
+        similarities: Dict[str, float] = {}
+
+        for variant in variants_with_snp:
+            sample = variant.sample.cypher
+            if all(allele is None for allele in alleles):
+                similarity = 0
+            else:
+                genotype = get_genotype(*alleles)
+                similarity = variant.calculate_similarity(genotype)
+
+            similarities[sample] = similarity
+            checked_samples.add(sample)
+
+        for sample_without_variant in all_samples - checked_samples:
+            similarities[sample_without_variant] = 0
+
+        return similarities
+
 
 class Variant(models.Model):
     from .metrics import identity_percentage
@@ -442,7 +516,7 @@ class Variant(models.Model):
     def calculate_similarity(
         self, alleles: Tuple[Allele], metric=identity_percentage
     ) -> float:
-        variant_alleles = tuple(self.alleles.all())
+        variant_alleles = self.alleles.all()
 
         if all(allele is None for allele in variant_alleles):
             return 0

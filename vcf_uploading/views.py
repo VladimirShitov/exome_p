@@ -129,3 +129,14 @@ def predict_nationality_from_vcf(
         result_template,
         {"predicted_nationalities": nationalities_prediction, "multiple_samples": True}
     )
+
+
+def find_similar_samples_in_db(
+        request,
+        file_id: int,
+        result_template="similar_samples.html"
+):
+    logger.info("{} receined a request", find_similar_samples_in_db.__name__)
+    vcf: RawVCF = get_object_or_404(RawVCF, pk=file_id)
+    similar_samples: Dict[str, Dict[str, float]] = vcf.find_similar_samples_in_db()
+    return render(request, result_template, {"similar_samples": similar_samples})

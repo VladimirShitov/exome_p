@@ -17,7 +17,7 @@
         <div class="col-12">
             <h1>Statistics of {{ vcf.file.path | suffix }}</h1>
             <p>Number of samples: <b>{{ vcf.n_samples }}</b></p>
-            <p>Number of reference alleles: <b>{{ vcf.n_refs }}</b></p>
+            <p>Number of variants: <b>{{ vcf.n_refs }}</b></p>
             <p>Number of alternative alleles: <b>{{ vcf.n_alts }}</b></p>
             <p>Number of missing haplotypes: <b>{{ vcf.n_missing_genotypes }}</b></p>
         </div>
@@ -52,6 +52,7 @@
         <div class="col-12">
             <a href="{% url 'save_vcf' vcf.pk %}" type="button" class="btn btn-success">Save file to the database</a>
             <a href="{% url 'predict_nationality_from_vcf' vcf.pk %}" type="button" class="btn btn-primary">Predict nationality</a>
+            <a href="{% url 'find_similar_samples_in_db' vcf.pk %}" type="button" class="btn btn-info">Find similar samples in the DB</a>
             <!--<a href="{% url 'upload' %}" type="button" class="btn btn-danger">Delete file</a>-->
         </div>
     </div>

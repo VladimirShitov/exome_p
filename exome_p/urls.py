@@ -28,6 +28,11 @@ urlpatterns = [
     path("file/vcf/<int:file_id>/download", vcf_uploading.views.vcf_file_download, name="vcf_file"),
     path("file/vcf/<int:file_id>/save", vcf_uploading.views.save_vcf, name="save_vcf"),
     path(
+        "file/vcf/<int:file_id>/similar_samples",
+        vcf_uploading.views.find_similar_samples_in_db,
+        name="find_similar_samples_in_db"
+    ),
+    path(
         "file/vcf/<int:file_id>/nationality",
         vcf_uploading.views.predict_nationality_from_vcf,
         name="predict_nationality_from_vcf"

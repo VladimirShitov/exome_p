@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-12">
+            <h1>The most similar samples</h1>
+        </div>
+    </div>
+    {% for vcf_sample, db_samples in similar_samples.items %}
+        <div class="row">
+            <div class="col-12">
+                {% if not similar_samples.keys %}
+                    <div class="alert alert-warning"><p>No similar samples found</p></div>
+                {% else %}
+                    <h3>Sample {{ vcf_sample }}</h3>
+                    <table class="table">
+                        <thead>
+                            <th scope="col">Database sample</th>
+                            <th scope="col">Similarity</th>
+                        </thead>
+                        <tbody>
+                            {% for db_sample, similarity in db_samples.items %}
+                                <tr>
+                                    <td>{{ db_sample }}</td>
+                                    <td>{{ similarity }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+
+    {% endfor %}
+
+{% endblock %}

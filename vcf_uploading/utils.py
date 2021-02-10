@@ -178,3 +178,19 @@ def get_snp_from_snp_search_form(request_dict: QueryDict) -> VariantDict:
     }
 
     return snp_dict
+
+
+def get_average_similarities(
+        similar_samples: Dict[str, Dict[str, List[float]]]
+) -> Dict[str, Dict[str, float]]:
+    samples_similarity: Dict[str, Dict[str, float]] = {}
+
+    for sample in similar_samples.keys():
+        samples_similarity[sample] = {}
+
+    for sample, db_samples_similarities in similar_samples.items():
+        for db_sample, similarities in db_samples_similarities.items():
+
+            samples_similarity[sample][db_sample] = round(sum(similarities) / len(similarities), 2)
+
+    return samples_similarity
