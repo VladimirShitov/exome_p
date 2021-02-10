@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path
 
 from nationality_prediction.views import upload_genotype_for_prediction
+import short_tandem_repeats.views
 import vcf_uploading.views
 
 urlpatterns = [
@@ -44,4 +45,5 @@ urlpatterns = [
         upload_genotype_for_prediction,
         name="nationality_prediction",
     ),
+    path("str/file/upload", short_tandem_repeats.views.str_file_upload, name="str_upload"),
 ]
