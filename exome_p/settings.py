@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "vcf_uploading",
     "nationality_prediction",
+    "short_tandem_repeats",
 ]
 
 MIDDLEWARE = [
