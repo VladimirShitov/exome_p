@@ -181,6 +181,9 @@ class RawVCF(models.Model):
         logger.debug("Predictions: {}", predictions)
         return predictions
 
+    def find_similar_samples_in_db(self):
+        return {"10_1": 1., "9_2": 0.5}
+
 
 class Allele(models.Model):
     genotype = models.CharField(max_length=15, blank=False, primary_key=True)
