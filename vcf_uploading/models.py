@@ -172,10 +172,9 @@ class RawVCF(models.Model):
         """
         logger.info("Predicting nationality for RawVCF")
 
-
         predictions = {}
 
-        for sample in record.samples.keys():
+        for sample in self.get_samples():
             logger.info("Predicting nationality for sample {}", sample)
             sample_vcf: VariantFile = VariantFile(vcf_file_path)
             sample_vcf.subset_samples([sample])
