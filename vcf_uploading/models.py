@@ -161,6 +161,8 @@ class RawVCF(models.Model):
         record = next(pysam_vcf.fetch())
         samples: List[str] = list(record.samples.keys())
 
+        pysam_vcf.close()
+
         return samples
 
     def predict_nationality(self) -> Dict[str, Dict[str, float]]:
@@ -182,6 +184,8 @@ class RawVCF(models.Model):
 
             predictor = FastNGSAdmixPredictor(sample_vcf)
             predictions[sample] = predictor.predict()
+
+            sample_vcf.close()
 
         logger.info("Returning nationality predictions")
         logger.debug("Predictions: {}", predictions)
