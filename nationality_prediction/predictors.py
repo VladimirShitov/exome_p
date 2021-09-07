@@ -14,8 +14,8 @@ from vcf_uploading.vcf_processing import VCFFile
 
 
 class FastNGSAdmixPredictor:
-    number_of_individuals_file = finders.find("nInd_humanOrigins_7worldPops.txt")
-    reference_panel_file = finders.find("refPanel_humanOrigins_7worldPops.txt")
+    number_of_individuals_file = finders.find("nInd_MultiEthnic_2019_Popul.txt")
+    reference_panel_file = finders.find("refPanel_MultiEthnic_2019_Popul.txt")
 
     def __init__(self, vcf: Union[VCFFile, InMemoryUploadedFile, VariantFile]):
         self.vcf = vcf
@@ -48,14 +48,15 @@ class FastNGSAdmixPredictor:
                     predicted_nationalities = self.run_command_line_tools(tmp_dir_path)
 
             elif isinstance(self.vcf, VariantFile):
+                # TODO: test if saved file is the same!
                 logger.info("Received VariantFile")
                 with open(vcf_file_path, "w") as temp_vcf:
                     temp_vcf.write(str(self.vcf.header))
                     for record in self.vcf.fetch():
                         temp_vcf.write(str(record))
 
-                    predicted_nationalities = self.run_command_line_tools(tmp_dir_path)
-                    logger.debug("Last record: {}", str(record))
+                predicted_nationalities = self.run_command_line_tools(tmp_dir_path)
+                logger.debug("Last record: {}", str(record))
 
             else:
                 raise ValueError(
@@ -104,13 +105,7 @@ class FastNGSAdmixPredictor:
                 logger.debug("Predicted nationalities:\n{}", predicted_nationalities)
         except FileNotFoundError:
             return {
-                "French": 0,
-                "Han": 0,
-                "Chukchi": 0,
-                "Karitiana": 0,
-                "Papuan": 0,
-                "Sindhi": 0,
-                "Yoruba": 0
+                "Not predicted": 0
             }
 
         file_content = predicted_nationalities.strip().split("\n")
@@ -120,6 +115,10 @@ class FastNGSAdmixPredictor:
         if len(nationalities) != len(scores):
             logger.warning("Nationalities and scores have different length")
 
-        prediction = dict(zip(nationalities, map(float, scores)))
+        prediction = {}
+        for nationality, score in zip(nationalities, scores):
+            score = float(score)
+            if score:
+                prediction[nationality] = round(score, 4)
 
         return prediction
