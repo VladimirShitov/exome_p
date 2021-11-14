@@ -1,8 +1,8 @@
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from loguru import logger
 
 from short_tandem_repeats.forms import STRFileForm
+
 
 def str_file_upload(
         request,
@@ -20,7 +20,8 @@ def str_file_upload(
             str_file = form.save()
             logger.debug("STR file: {}", str_file)
 
-            return HttpResponse("Yay, you saved the file")
+            return redirect("str_view", file_id=str_file.pk)
+
         else:
             logger.warning("Something has failed")
             logger.debug("Form errors: {}", form.errors)
@@ -30,3 +31,5 @@ def str_file_upload(
         form = form_class()
 
     return render(request, form_template, {"form": form})
+
+
