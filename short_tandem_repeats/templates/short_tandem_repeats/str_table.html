@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-12">
+            <h1>{{ name }}</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-responsive table-striped">
+                <thead>
+                    {% for column in columns %}
+                        <th scope="col">{{ column }}</th>
+                    {% endfor %}
+                </thead>
+                <tbody>
+                    {% for _, row in rows %}
+                        <tr>
+                            {% for value in row %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}
