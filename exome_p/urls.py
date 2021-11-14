@@ -46,4 +46,5 @@ urlpatterns = [
         name="nationality_prediction",
     ),
     path("str/file/upload", short_tandem_repeats.views.str_file_upload, name="str_upload"),
+    path("file/str/<int:file_id>", short_tandem_repeats.views.str_view, name="str_view"),
 ]

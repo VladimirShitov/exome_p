@@ -1,7 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from loguru import logger
+import pandas as pd
 
 from short_tandem_repeats.forms import STRFileForm
+from short_tandem_repeats.models import STRFile
 
 
 def str_file_upload(
@@ -33,3 +35,22 @@ def str_file_upload(
     return render(request, form_template, {"form": form})
 
 
+def str_view(
+        request,
+        file_id: int,
+        result_template="short_tandem_repeats/str_table.html"
+):
+    logger.info("STR view received a request")
+
+    str_file: STRFile = get_object_or_404(STRFile, pk=file_id)
+    logger.debug("Reading file {}", str_file.file.name)
+
+    df = pd.read_excel(str_file.file.path, engine="openpyxl")
+    columns = df.columns.tolist()
+
+    logger.success("Returning the page")
+    return render(
+        request,
+        result_template,
+        {"columns": columns, "rows": df.iterrows(), "name": str_file.file.name},
+    )
