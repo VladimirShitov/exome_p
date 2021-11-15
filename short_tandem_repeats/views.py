@@ -61,7 +61,7 @@ def str_view(
 def str_search_form(
     request,
     form_class=STRSearchForm,
-    form_template="str_search.html",
+    form_template="short_tandem_repeats/str_search.html",
     result_template="str_search_result.html",
 ):
     formset_class = formset_factory(form_class)
