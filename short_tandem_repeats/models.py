@@ -14,10 +14,17 @@ class STRRegion(models.Model):
         return self.title
 
 
+class NRepeats(models.Model):
+    n_repeats = models.CharField(max_length=10, primary_key=True)
+
+    def __str__(self):
+        return self.n_repeats
+
+
 class ShortTandemRepeat(models.Model):
     sample = models.ForeignKey(to=Sample, on_delete=models.CASCADE)
     region = models.ForeignKey(to=STRRegion, on_delete=models.CASCADE)
-    n_repeats = models.IntegerField()
+    n_repeats = models.ForeignKey(to=NRepeats, on_delete=models.SET("-"))
 
 
 class STRFile(models.Model):
