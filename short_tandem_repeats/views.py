@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.forms import formset_factory
+from django.forms import formset_factory, BaseFormSet
 from loguru import logger
 import pandas as pd
 
 from short_tandem_repeats.forms import STRFileForm, STRSearchForm
-from short_tandem_repeats.models import STRFile
+from short_tandem_repeats.models import STRFile, NRepeats
+from short_tandem_repeats.utils import find_sample
 
 
 def str_file_upload(
@@ -62,9 +63,9 @@ def str_search_form(
     request,
     form_class=STRSearchForm,
     form_template="short_tandem_repeats/str_search.html",
-    result_template="str_search_result.html",
+    result_template="short_tandem_repeats/str_search_result.html",
 ):
-    formset_class = formset_factory(form_class)
+    formset_class = formset_factory(form_class, formset=BaseFormSet)
 
     if request.method == "POST":
         logger.info("{} received a POST request", str_search_form.__name__)
@@ -72,13 +73,18 @@ def str_search_form(
 
         if formset.is_valid():
             logger.success("Formset is valid, returning success")
-            # samples: SamplesSearchResult = get_similar_samples_from_snp(formset)
-            # return render(request, result_template, {"result": samples})
+            samples: list = find_sample(formset)
+            return render(request, result_template, {"result": samples})
 
         else:
             logger.warning("Formset is not valid")
+            logger.warning("Errors: {}", formset.errors)
+
             return render(request, form_template, {"formset": formset})
-    else:
-        formset = formset_class()
+
+    else:  # Request method is not post
+        repeats_list = [repeat.n_repeats for repeat in NRepeats.objects.all()]
+
+        formset = formset_class(form_kwargs={"repeats_list": repeats_list})
 
     return render(request, form_template, {"formset": formset})
