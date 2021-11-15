@@ -44,17 +44,16 @@ class STRSearchForm(forms.Form):
         required=True,
         label=_("Region"),
     )
-    n_repeats = forms.ModelChoiceField(
-        queryset=NRepeats.objects.all(),
-        empty_label=None,
+    n_repeats = forms.CharField(
+        max_length=10,
         required=True,
         label=_("Number of repeats"),
     )
 
     def __init__(self, *args, **kwargs):
-        super(STRSearchForm, self).__init__()
+        repeats_list = kwargs.pop("repeats_list", [])
 
-        repeats_list = kwargs.pop("repeats_list")
+        super(STRSearchForm, self).__init__(*args, **kwargs)
 
         self.fields["n_repeats"].widget = ListTextWidget(data_list=repeats_list,
                                                          name="repeats-list")
