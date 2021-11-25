@@ -7,7 +7,7 @@ COPY pyproject.toml poetry.lock /usr/src/exome_p/
 
 # Install system-level dependencies
 RUN apk add build-base libffi-dev libressl-dev postgresql-dev gcc python3-dev musl-dev \
-            zlib-dev bzip2-dev xz-dev git
+            zlib-dev bzip2-dev xz-dev git curl
 
 # Install htslib
 RUN cd /usr/bin && \
@@ -27,6 +27,10 @@ RUN wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20201019.zip &
     unzip plink_linux_x86_64_20201019.zip && \
     cp plink /usr/bin/
 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+#ENV PATH="${HOME}/.cargo/bin:${PATH}"
 
 RUN pip install --upgrade pip && \
     pip install poetry==1.*
