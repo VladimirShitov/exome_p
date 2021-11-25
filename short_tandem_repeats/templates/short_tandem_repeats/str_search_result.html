@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-12">
+            <h1>The most similar samples</h1>
+            {% if not result %}
+                <div class="alert alert-warning"><p>No similar samples found</p></div>
+            {% else %}
+                <table class="table" id="MostSimilarSamples">
+                    <thead>
+                        <th scope="col">Sample</th>
+                    </thead>
+                    <tbody>
+                        {% for sample in result %}
+                            <tr>
+                                <td>{{ sample }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        {% for search_result in result.snp_queries %}
+            <div class="col-12">
+                <h3>Query genetic variant</h3>
+                <ul>
+                    {% for key, value in search_result.snp_query.items %}
+                        <li><b>{{ key }}</b>: {{ value }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-12">
+                <h3>The most similar samples to that genetic variant</h3>
+                {% if not search_result.similarity_table %}
+                    <div class="alert alert-warning"><p>No similar samples found</p></div>
+                {% else %}
+                    <table class="table" class="">
+                        <thead>
+                            {% for col_name in search_result.similarity_table.header %}
+                                <th scope="col">{{ col_name }}</th>
+                            {% endfor %}
+                        </thead>
+                        <tbody>
+                            {% for row in search_result.similarity_table.content %}
+                                <tr>
+                                    {% for cell_content in row %}
+                                        <td>{{ cell_content }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+    </div>
+{% endblock %}
